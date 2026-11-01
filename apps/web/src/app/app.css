@@ -14,6 +14,29 @@ html, body { height: 100%; }
 
 
   .hero { display: grid; gap: 2px; padding: 0 4px; }
+  /* «Обзор»: одна вёрстка — на телефоне список, на десктопе дашборд */
+  .narrow-only { display: contents; }
+  .wide-only, .wide-only-flex { display: none; }
+  .dash { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start; }
+  .dash__l, .dash__r { display: contents; }
+  .dash__recap { order: 1; }
+  .plans { order: 2; display: grid; gap: 28px; min-width: 0; }
+  .feed { order: 3; display: grid; gap: 20px; min-width: 0; }
+  .home-head { display: flex; align-items: center; gap: 12px; min-width: 0; font: 400 var(--t-body)/1.3 var(--font); letter-spacing: -.41px; }
+  .avatar-menu { border: 0; padding: 0; background: none; border-radius: 50%; cursor: pointer; display: grid; }
+  .kpis { display: grid; grid-template-columns: minmax(0, 1.8fr) repeat(4, minmax(0, 1fr)); gap: 12px; grid-column: 1 / -1; }
+  .kpi { min-width: 0; padding: 14px 16px 16px; border-radius: 12px; background: var(--bg-2); display: grid; gap: 8px; align-content: space-between; }
+  .kpi__label { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: var(--t-footnote); color: var(--label-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi--main .kpi__label { text-transform: uppercase; letter-spacing: -.08px; }
+  .kpi__dot { --c: var(--tint); width: 20px; height: 20px; flex: none; border-radius: 6px; display: grid; place-items: center; background: var(--c); color: #fff; }
+  .kpi__dot .ms { font-size: 14px; }
+  .kpi__v { font-family: var(--font-rounded); font-size: 22px; font-weight: 700; letter-spacing: -.3px; line-height: 1.1; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi__v small { margin-left: 3px; font-size: .64em; font-weight: 600; color: var(--label-2); }
+  .kpi--in .kpi__v { color: var(--green); }
+  .kpi--main .kpi__v { font-size: 40px; letter-spacing: -.5px; }
+  .kpi__month { display: grid; gap: 6px; font-size: var(--t-footnote); color: var(--label-2); }
+  .kpi__bar { height: 4px; border-radius: 2px; background: var(--fill-3); overflow: hidden; }
+  .kpi__bar i { display: block; height: 100%; border-radius: 2px; background: var(--tint); transform-origin: left; animation: grow-x var(--dur-4) var(--ease-ios) both; }
   .hero__v { font-family: var(--font-rounded); font-size: 48px; font-weight: 700; letter-spacing: -.5px; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .hero__v small { font-size: 28px; color: var(--label-2); font-weight: 600; margin-left: 4px; }
 
@@ -240,6 +263,8 @@ html, body { height: 100%; }
   .google-sheet__text { margin: 0; color: var(--label-2); font-size: var(--t-subhead); max-width: 340px; }
   .google-sheet__slot { width: 100%; max-width: 400px; min-height: 44px; display: grid; place-items: center; }
   .google-sheet__slot[hidden] { display: none; }
+  /* фрейм кнопки Google светлый: с той же схемой цвета браузер не заливает его белым в тёмной теме */
+  .google-sheet__slot iframe { color-scheme: light; background: transparent; }
   .btn--filled .spinner i, .btn--apple .spinner i { background: currentColor; }
   .strength { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 8px 16px 0; }
   .strength i { height: 4px; border-radius: 2px; background: var(--fill-3); transition: background var(--dur-3); }
@@ -265,6 +290,17 @@ html, body { height: 100%; }
     .badges { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     .chart { height: 220px; }
     .update-bar { left: auto; right: 24px; bottom: 24px; width: 380px; }
+    .narrow-only { display: none; }
+    .wide-only { display: contents; }
+    .wide-only-flex { display: flex; }
+    .dash { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); gap: 28px; margin-top: 4px; }
+    .dash__l, .dash__r { display: grid; gap: 28px; align-content: start; min-width: 0; }
+    .dash__recap, .plans, .feed { order: 0; }
+    .feed { gap: 14px; }
+    .feed > .section__header { margin-bottom: -6px; }
+    .plans .section.is-empty, .plans .section__footer { display: none; }
+    .home-head .search { width: 300px; }
+    .home-head .search__cancel { display: none; }
     .story { width: 400px; height: min(780px, calc(100% - 48px)); border-radius: 22px; }
     .recap { background: rgba(0, 0, 0, .85); }
   }

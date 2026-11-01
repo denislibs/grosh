@@ -1,6 +1,6 @@
 import { NOW, TODAY, addDays, cap, iso, pRange, parse, uid } from './dates.js';
 import { CATS } from './categories.js';
-import { mkTransfer } from './finance.js';
+import { instDue, mkTransfer } from './finance.js';
 import { ACH, evaluate } from './achievements.js';
 import { SCHEMA } from '../state/store.js';
 
