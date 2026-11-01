@@ -2,7 +2,11 @@ import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
+// На GitHub Pages приложение живёт в подпапке: BASE=/grosh/ задаёт workflow деплоя
+const base = process.env.BASE || '/';
+
 export default defineConfig({
+  base,
   plugins: [
     preact(),
     VitePWA({
@@ -13,8 +17,8 @@ export default defineConfig({
         short_name: 'Грош',
         description: 'Учёт трат в тенге с наградами, челленджами, рассрочками и депозитами',
         lang: 'ru',
-        start_url: '/',
-        scope: '/',
+        start_url: base,
+        scope: base,
         display: 'standalone',
         orientation: 'portrait',
         background_color: '#F2F2F7',
@@ -27,7 +31,6 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        navigateFallback: '/index.html',
         runtimeCaching: [
           { urlPattern: /^https:\/\/fonts\.googleapis\.com\//, handler: 'StaleWhileRevalidate', options: { cacheName: 'google-fonts-css' } },
           { urlPattern: /^https:\/\/fonts\.gstatic\.com\//, handler: 'CacheFirst', options: { cacheName: 'google-fonts', expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 365 }, cacheableResponse: { statuses: [0, 200] } } },
