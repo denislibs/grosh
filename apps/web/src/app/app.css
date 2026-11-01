@@ -73,6 +73,7 @@ html, body { height: 100%; }
   .tx__dot .ms { font-size: 14px; }
   .tx__del { color: var(--red); }
   .tx__bottom { display: grid; gap: 42px; }
+  .cashpad__ops { margin-bottom: -30px; } /* строка «+ − =» остаётся рядом с цифрами: 42 − 30 = 12 px */
   .tx__save { margin-top: 14px; }
   .cashpad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 8px; }
   .cashpad__key { height: 60px; border: 0; border-radius: 30px; background: transparent; color: var(--label); font-family: var(--font); font-size: 32px; font-weight: 400; font-variant-numeric: tabular-nums; display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 260ms var(--ease-out); }
