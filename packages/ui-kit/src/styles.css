@@ -750,7 +750,10 @@ input:autofill { -webkit-text-fill-color: var(--label); caret-color: var(--label
    ========================================================================== */
 
 /* шторки парят над экраном; в тёмной теме — приподнятый фон, как у листов iOS */
-.sheet { left: 8px; right: 8px; bottom: 8px; border-radius: var(--r-sheet); }
+.sheet { left: 8px; right: 8px; bottom: 8px; border-radius: var(--r-sheet); overflow: hidden; }
+/* кнопки ✕ и ✓ концентричны углу: отступ = радиус угла − радиус кнопки (22 px), иначе круг выпирает за изгиб.
+   Над шапкой на телефоне стоит «ручка» высотой 10 px — её вычитаем из верхнего отступа */
+.sheet__nav--glass { --inset: calc(var(--r-sheet) - 22px); padding: max(0px, calc(var(--inset) - 10px)) var(--inset) 0; min-height: 0; }
 .sheet__body { padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) - 4px)); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sheet { --bg: #1C1C1E; --bg-2: #2C2C2E; --seg-thumb: #636366; } }
 :root[data-theme="dark"] .sheet { --bg: #1C1C1E; --bg-2: #2C2C2E; }
@@ -780,8 +783,18 @@ input:autofill { -webkit-text-fill-color: var(--label); caret-color: var(--label
 .alert__btn--destructive { color: var(--red); }
 .action-sheet__group, .action-sheet__cancel { border-radius: 28px; }
 
-/* навбар при прокрутке — стекло без жёсткой линии */
-.nav.is-scrolled { border-bottom-color: transparent; }
+/* навбар как в iOS 26–27: без плашки и линии. Заголовок и стеклянные кнопки висят над контентом,
+   а уходящий под шапку контент мягко размывается (scroll edge effect): размытие гаснет к низу маской,
+   цветного градиента нет */
+.nav, .nav.is-scrolled { isolation: isolate; background: transparent; border-bottom-color: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.nav::before {
+  content: ""; position: absolute; inset: 0 0 -28px; z-index: -1; pointer-events: none;
+  background: var(--bg);
+  -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6);
+  -webkit-mask-image: linear-gradient(#000 58%, transparent); mask-image: linear-gradient(#000 58%, transparent);
+  opacity: 0; transition: opacity var(--dur-2);
+}
+.nav.is-scrolled::before { opacity: 1; }
 
 /* таббар: парящая стеклянная капсула с вкладками и отдельный круг «+» */
 .tabbar {
@@ -817,5 +830,6 @@ input:autofill { -webkit-text-fill-color: var(--label); caret-color: var(--label
   .tabbar .tab--add { width: auto; height: auto; min-height: 44px; border-radius: 999px; justify-content: center; grid-auto-flow: column; gap: 8px; }
   .tabbar .tab--add .ms { font-size: 22px; }
   .tabbar .tab--add > span.tab__label-wide { display: inline; }
-  .sheet, .sheet--auto { left: 50%; right: auto; bottom: auto; border-radius: 30px; }
+  .sheet, .sheet--auto { --r-sheet: 30px; left: 50%; right: auto; bottom: auto; border-radius: var(--r-sheet); }
+  .sheet__nav--glass { padding-top: var(--inset); }
 }
