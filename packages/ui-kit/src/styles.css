@@ -691,5 +691,23 @@ input:autofill { -webkit-text-fill-color: var(--label); caret-color: var(--label
 @keyframes grow-y { from { transform: scaleY(0); } }
 @keyframes ring-in { from { stroke-dashoffset: var(--len, 200); } }
 @keyframes pop { from { transform: translateY(30%) scale(.7); opacity: 0; } }
+/* ── Код-пароль ── */
+.passcode { display: grid; justify-items: center; padding: 8px 0 4px; user-select: none; -webkit-user-select: none; }
+.passcode__title { font-size: var(--t-title3); font-weight: 600; text-align: center; }
+.passcode__dots { display: flex; gap: 18px; margin: 22px 0 12px; }
+.passcode__dots i { width: 13px; height: 13px; border-radius: 50%; box-sizing: border-box; border: 1.5px solid var(--label); transition: background-color var(--dur-1) var(--ease-out); }
+.passcode__dots i.is-on { background: var(--label); }
+.passcode__dots.is-shake { animation: shake 380ms var(--ease-ios); }
+.passcode__sub { min-height: 20px; max-width: 300px; font-size: var(--t-footnote); color: var(--label-2); text-align: center; }
+.passcode__sub.is-error { color: var(--red); }
+.passcode__pad { display: grid; grid-template-columns: repeat(3, 76px); gap: 16px 26px; margin-top: 26px; }
+.passcode__slot { display: grid; place-items: center; width: 76px; height: 76px; }
+.passcode__key { width: 76px; height: 76px; border-radius: 50%; border: 0; background: var(--fill-3); color: var(--label); font: 400 32px/1 var(--font); font-variant-numeric: tabular-nums; display: grid; place-items: center; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: background-color 280ms var(--ease-out); }
+.passcode__key:active { background: var(--fill); transition: none; }
+.passcode__key--plain { background: transparent; color: var(--label); font-size: var(--t-body); }
+.passcode__key--plain:active { background: transparent; opacity: .4; }
+.passcode__key .ms { font-size: 28px; }
+.passcode.is-disabled .passcode__key { opacity: .45; cursor: default; }
+@media (max-height: 640px) { .passcode__pad { gap: 10px 22px; grid-template-columns: repeat(3, 68px); } .passcode__key, .passcode__slot { width: 68px; height: 68px; } }
 @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 @keyframes badge-in { from { transform: rotateY(-540deg) scale(.4); } }

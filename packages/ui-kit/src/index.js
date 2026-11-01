@@ -13,3 +13,4 @@ export { Field, SearchField } from './components/forms.js';
 export { Screen, Page, Section } from './components/layout.js';
 export { Sheet, SheetNav, Dialog, Island } from './components/overlays.js';
 export { Banner, Empty, Confetti } from './components/feedback.js';
+export { Passcode } from './components/passcode.js';

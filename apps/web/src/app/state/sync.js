@@ -43,7 +43,7 @@ const PROFILE_KEYS = ['profile', 'settings', 'meta'];
 // Очередь неотправленного: { tx: { id: время изменения }, …, profile: время } + курсоры чтения
 let q = { dirty: {}, removed: {}, profileAt: 0, cursors: {}, profilePulledAt: null };
 const emptyQueue = () => ({ dirty: {}, removed: {}, profileAt: 0, cursors: {}, profilePulledAt: null });
-const saveQueue = () => idb.db && idb.put('sync', q).catch(() => {});
+const saveQueue = () => idb.save('sync', q).catch(() => {});
 
 export const syncState = { status: 'off', lastAt: null, error: null, subs: new Set() };
 const setStatus = (status, error = null) => {
@@ -56,7 +56,7 @@ let userId = null, running = false, again = false, pushT = 0, timer = 0, trackin
 
 /** Вызывается один раз при запуске: поднимает очередь и начинает следить за изменениями. */
 export async function initSync() {
-  const saved = idb.db ? await idb.get('sync').catch(() => null) : null;
+  const saved = idb.db ? await idb.load('sync').catch(() => null) : null;
   if (saved) q = saved;
   if (!tracking) { store.onChange(track); tracking = true; }
 }
@@ -186,3 +186,7 @@ export function stopSync() {
 }
 
 export const syncNow = () => run();
+/** Есть изменения, которые ещё не дошли до сервера. */
+export const hasPending = () => q.profileAt > 0 || [q.dirty, q.removed].some(m => Object.values(m).some(o => Object.keys(o).length));
+/** Перезаписать очередь на диске (после включения или выключения шифрования). */
+export const flushQueue = () => saveQueue();

@@ -2,15 +2,26 @@ import { useState, useEffect } from 'preact/hooks';
 import { haptic } from '@grosh/ui-kit';
 import { money, uid } from '../lib/dates.js';
 import { ACH, evaluate } from '../lib/achievements.js';
+import { isSealed, seal, unseal } from '../lib/vault.js';
 
 export const SCHEMA = 3;
 
 // Локальная копия всех данных — одна запись в IndexedDB. Работает офлайн; сервер её только синхронизирует.
 export const idb = {
   db: null,
+  dek: null, // ключ данных, пока приложение разблокировано (см. lock.js)
   open() { return new Promise((res, rej) => { try { const r = indexedDB.open('grosh', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => { this.db = r.result; res(); }; r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); },
   get(k) { return new Promise((res, rej) => { const q = this.db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
   put(k, v) { return new Promise((res, rej) => { const t = this.db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
+  del(k) { return new Promise((res, rej) => { const t = this.db.transaction('kv', 'readwrite'); t.objectStore('kv').delete(k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
+  // данные с шифрованием, если включён код-пароль
+  async load(k) {
+    const v = await this.get(k);
+    if (!isSealed(v)) return v;
+    if (!this.dek) throw new Error('locked');
+    return unseal(this.dek, v);
+  },
+  async save(k, v) { if (this.db) await this.put(k, this.dek ? await seal(this.dek, v) : v); },
 };
 
 const changeListeners = new Set();
@@ -23,8 +34,9 @@ export const store = {
     if (!fromSync) changeListeners.forEach(f => f(prev, this.s));
     this.subs.forEach(f => f());
     clearTimeout(this.saveT);
-    this.saveT = setTimeout(() => { if (idb.db) idb.put('state', this.s).catch(() => {}); }, 250);
+    this.saveT = setTimeout(() => this.flush(), 250);
   },
+  flush() { clearTimeout(this.saveT); return idb.save('state', this.s).catch(() => {}); },
   onChange(f) { changeListeners.add(f); return () => changeListeners.delete(f); },
 };
 export function useStore() {

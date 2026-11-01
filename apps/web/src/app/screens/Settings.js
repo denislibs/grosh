@@ -1,12 +1,14 @@
 import { html } from 'htm/preact';
-import { useRef } from 'preact/hooks';
+import { useRef, useState, useEffect } from 'preact/hooks';
 import { Icon, Sq, Chevron, Switch, Page, Select } from '@grosh/ui-kit';
 import { TODAY, dateLong, initials, iso } from '../lib/dates.js';
 import { catOf, mutate, store, ui } from '../state/store.js';
 import { askImport, download } from '../lib/backup.js';
 import { makeDemo } from '../lib/seed.js';
 import { supabase } from '../lib/supabase.js';
-import { syncNow } from '../state/sync.js';
+import { syncNow, hasPending } from '../state/sync.js';
+import { lock, useLock } from '../state/lock.js';
+import { bio, bioMessage, bioSupported } from '../lib/biometric.js';
 import { useApp } from '../state/AppContext.js';
 
 export function Settings({ s, onClose }) {
@@ -27,10 +29,25 @@ export function Settings({ s, onClose }) {
     title: 'Стереть все данные?', msg: 'Записи, челленджи и награды удалятся с этого устройства. Отменить это нельзя.',
     actions: [{ label: 'Отмена', style: 'bold' }, { label: 'Стереть', style: 'destructive', run: () => { store.set(st => ({ tx: [], challenges: [], meta: { ...st.meta, backups: 0, lastBackupAt: null, calcUsed: false, recapSeen: null, ach: {}, demo: false }, profile: { ...st.profile, showcase: [], since: TODAY } })); ui.toast('Все данные стёрты'); } }],
   });
+  // при выходе устройство очищается: записи остаются в аккаунте, а не у того, кто возьмёт телефон
   const signOut = () => ui.dialog({
-    title: 'Выйти из аккаунта?', msg: 'Данные останутся на этом устройстве, синхронизация остановится.',
-    actions: [{ label: 'Отмена' }, { label: 'Выйти', style: 'destructive', run: async () => { if (supabase) await supabase.auth.signOut(); store.set(st => ({ profile: { ...st.profile, account: null } })); ui.toast('Вы вышли из аккаунта'); } }],
+    title: 'Выйти из аккаунта?', msg: 'Записи останутся в аккаунте, а с этого устройства удалятся вместе с код-паролем.',
+    actions: [{ label: 'Отмена' }, { label: 'Выйти', style: 'destructive', run: async () => {
+      await syncNow();
+      if (hasPending()) return ui.toast('Не все изменения отправлены. Проверьте интернет и попробуйте ещё раз.', null, 'error');
+      if (supabase) await supabase.auth.signOut();
+      await lock.wipe();
+      location.reload();
+    } }],
   });
+  const lk = useLock();
+  const [bioOk, setBioOk] = useState(false);
+  useEffect(() => { bioSupported().then(setBioOk); }, []);
+  const toggleBio = async on => {
+    try { if (on) { await lock.enableBio(); ui.toast(`Грош открывается ${bio.by}`); } else await lock.disableBio(); }
+    catch (e) { const m = bioMessage(e); if (m) ui.toast(m, null, 'error'); }
+  };
+  const pin = mode => ui.sheet({ kind: 'pin', mode, auto: true });
   const acc = s.profile.account;
   const { sync } = useApp();
   const syncText = { idle: sync.lastAt ? 'Только что' : 'Готово', syncing: 'Синхронизация…', offline: 'Нет сети', error: 'Ошибка', off: 'Выключена' }[sync.status];
@@ -51,6 +68,16 @@ export function Settings({ s, onClose }) {
         <button class="cell cell--destructive" onClick=${signOut}>Выйти</button>
       </div><div class="section__footer">Записи синхронизируются между устройствами, где вы вошли. Нажмите, чтобы синхронизировать сейчас.</div></div>`
       : html`<div class="group"><button class="cell cell--icon" onClick=${() => ui.auth('welcome')}><${Sq} icon="cloud_sync" color="blue" /><span class="cell__main"><span>Войти в Грош</span><span class="cell__sub">Синхронизация между устройствами</span></span><${Chevron} /></button></div>`}
+    <div class="section"><div class="section__header">Защита</div><div class="group">
+      ${!lk.on ? html`<button class="cell cell--icon" onClick=${() => pin('set')}><${Sq} icon="lock" color="gray" /><span class="cell__main">Код-пароль</span><span class="cell__value">Выкл.</span><${Chevron} /></button>`
+        : html`
+        ${bioOk && html`<div class="cell cell--icon"><${Sq} icon=${bio.icon} color="green" /><span class="cell__main">${bio.name}</span><${Switch} on=${lk.bio} onChange=${toggleBio} label=${'Открывать ' + bio.by} /></div>`}
+        <div class="cell cell--icon"><${Sq} icon="timer" color="orange" /><span class="cell__main">Блокировать</span><${Select} id="auto-lock" label="Блокировать" value=${s.settings.autoLock ?? 60} onChange=${v => set({ autoLock: +v })} options=${[[0, 'Сразу'], [60, 'Через минуту'], [300, 'Через 5 минут'], [900, 'Через 15 минут']]} /></div>
+        <button class="cell cell--icon" onClick=${() => pin('change')}><${Sq} icon="password" color="blue" /><span class="cell__main">Сменить код-пароль</span><${Chevron} /></button>
+        <button class="cell cell--destructive" onClick=${() => pin('off')}>Выключить код-пароль</button>`}
+    </div><div class="section__footer">${lk.on
+      ? 'Записи на этом устройстве зашифрованы. Если забудете код, данные вернутся из аккаунта после входа.'
+      : 'С код-паролем записи на устройстве шифруются, а Грош открывается только по коду' + (bioOk ? ' или ' + bio.name : '') + '.'}</div></div>
     <div class="section"><div class="section__header">Оформление</div><div class="group">
       <div class="cell cell--icon"><${Sq} icon="contrast" color="indigo" /><span class="cell__main">Тема</span><${Select} id="set-theme" label="Тема" value=${s.settings.theme} onChange=${v => set({ theme: v })} options=${[["system", "Как в системе"], ["light", "Светлая"], ["dark", "Тёмная"]]} /></div>
       <div class="cell cell--icon"><${Sq} icon="animation" color="teal" /><span class="cell__main">Анимации</span><${Select} id="set-motion" label="Анимации" value=${s.settings.motion} onChange=${v => set({ motion: v })} options=${[["full", "Все"], ["reduced", "Меньше"]]} /></div>
@@ -67,8 +94,8 @@ export function Settings({ s, onClose }) {
       <button class="cell cell--icon" onClick=${() => ui.sheet({ kind: 'backup', auto: true })}><${Sq} icon="download" color="blue" /><span class="cell__main">Скачать бэкап</span><span class="cell__value">${last}</span><${Chevron} /></button>
       <button class="cell cell--icon" onClick=${() => fileRef.current.click()}><${Sq} icon="upload" color="blue" /><span class="cell__main">Загрузить бэкап</span><${Chevron} /></button>
       <button class="cell cell--icon" onClick=${csv}><${Sq} icon="table_view" color="green" /><span class="cell__main">Экспорт в CSV</span><${Chevron} /></button>
-      <button class="cell cell--icon" onClick=${loadDemo}><${Sq} icon="auto_awesome" color="indigo" /><span class="cell__main">Заполнить примером</span><${Chevron} /></button>
-    </div><div class="section__footer">Данные хранятся только на этом устройстве. Бэкап — это файл JSON, его можно загрузить обратно на любом устройстве.</div></div>
+      ${!acc && html`<button class="cell cell--icon" onClick=${loadDemo}><${Sq} icon="auto_awesome" color="indigo" /><span class="cell__main">Заполнить примером</span><${Chevron} /></button>`}
+    </div><div class="section__footer">${acc ? 'Данные хранятся в аккаунте и на этом устройстве.' : 'Данные хранятся только на этом устройстве.'} Бэкап — это файл JSON, его можно загрузить обратно на любом устройстве.</div></div>
     <div class="section"><div class="group"><button class="cell cell--destructive" onClick=${reset}>Стереть все данные</button></div>
       <div class="section__footer">Грош 0.1 · схема данных v${s.v} · <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--tint)">Политика конфиденциальности</a>${s.meta.demo ? ' · заполнено примерами' : ''}</div></div>
     <input type="file" id="import-file" accept="application/json,.json" ref=${fileRef} onChange=${onFile} hidden />

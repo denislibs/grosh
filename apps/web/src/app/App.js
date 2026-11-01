@@ -27,6 +27,10 @@ import { BackupSheet, ImportSheet } from './sheets/BackupSheet.js';
 import { AvatarSheet } from './sheets/AvatarSheet.js';
 import { ShowcaseSheet } from './sheets/ShowcaseSheet.js';
 import { PasskeySheet } from './sheets/PasskeySheet.js';
+import { PinSheet } from './sheets/PinSheet.js';
+import { Lock } from './screens/Lock.js';
+import { Onboarding } from './screens/Onboarding.js';
+import { lock } from './state/lock.js';
 
 const TABS = ['home', 'calendar', 'stats', 'awards'];
 
@@ -38,11 +42,11 @@ function useSyncState() {
 
 // Сессия Supabase → профиль и синхронизация
 function useAuthSession(openAuth) {
-  const [session, setSession] = useState(null);
+  const [session, setSession] = useState(null), [ready, setReady] = useState(!supabase);
   useEffect(() => {
     if (!supabase) return;
     const apply = (sess, event) => {
-      setSession(sess);
+      setSession(sess); setReady(true);
       if (event === 'PASSWORD_RECOVERY') openAuth('newpass');
       if (!sess) { stopSync(); if (store.s.profile.account) store.set(st => ({ profile: { ...st.profile, account: null } })); return; }
       const u = sess.user;
@@ -60,7 +64,22 @@ function useAuthSession(openAuth) {
     const { data } = supabase.auth.onAuthStateChange((event, sess) => setTimeout(() => apply(sess, event), 0));
     return () => data.subscription.unsubscribe();
   }, []);
-  return session;
+  return { session, ready };
+}
+
+// Блокировка после фона: «Сразу» — уже при сворачивании, чтобы в переключателе приложений не было видно записей
+function useAutoLock(s, setLocked) {
+  useEffect(() => {
+    let hiddenAt = 0;
+    const h = () => {
+      if (!lock.on) return;
+      const after = (s.settings.autoLock ?? 60) * 1000;
+      if (document.hidden) { hiddenAt = Date.now(); if (!after) setLocked(true); }
+      else if (hiddenAt && Date.now() - hiddenAt >= after) setLocked(true);
+    };
+    document.addEventListener('visibilitychange', h);
+    return () => document.removeEventListener('visibilitychange', h);
+  }, [s.settings.autoLock]);
 }
 
 export function App() {
@@ -73,11 +92,19 @@ export function App() {
   const [recap, setRecap] = useState(null);
   const [toast, setToast] = useState(null);
   const [unlocks, setUnlocks] = useState(null);
-  const [auth, setAuth] = useState(() => (location.hash === '#auth' || (!s.meta.onboarded && !new URLSearchParams(location.search).has('embed')) ? 'welcome' : null));
+  const [auth, setAuth] = useState(() => (location.hash === '#auth' ? 'welcome' : null));
+  const [locked, setLocked] = useState(false);
   const [dialog, setDialog] = useState(null);
   const toastT = useRef();
   const { c, res } = useMemo(() => evaluate(s), [s]);
-  const session = useAuthSession(step => setAuth(step));
+  const { session, ready } = useAuthSession(step => setAuth(step));
+  // без аккаунта в приложение не пускаем (кроме сборки без сервера и встраивания в витрину)
+  const mustSignIn = !!supabase && ready && !session && !new URLSearchParams(location.search).has('embed');
+  useAutoLock(s, setLocked);
+  // онбординг — новому аккаунту после первой синхронизации, чтобы не показать его тому, у кого записи уже на сервере
+  const [forceSetup, setForceSetup] = useState(false);
+  if (import.meta.env.DEV) ui.setup = () => setForceSetup(true); // посмотреть онбординг без нового аккаунта
+  const needSetup = forceSetup || (!!session && !!sync.lastAt && !s.meta.setupDone && !s.tx.some(t => !t.deletedAt));
 
   ui.sheet = v => { setSheetOut(false); setSheet(v); };
   ui.page = p => setPages(ps => [...ps.filter(x => x !== p), p]);
@@ -114,6 +141,7 @@ export function App() {
       case 'inst': return html`<${InstSheet} it=${sheet.it} close=${close} />`;
       case 'dep': return html`<${DepSheet} d=${sheet.d} close=${close} />`;
       case 'passkeys': return html`<${PasskeySheet} close=${close} />`;
+      case 'pin': return html`<${PinSheet} mode=${sheet.mode} close=${close} />`;
     }
   };
   const ctx = { s, c, res, ui, session, sync };
@@ -137,9 +165,11 @@ export function App() {
       ${sheet && html`<${Sheet} key=${sheet.kind + (sheet.tx?.id || sheet.id || sheet.it?.id || sheet.d?.id || '')} auto=${sheet.auto} onClosing=${() => setSheetOut(true)} onClose=${() => setSheet(null)}>${sheetBody}<//>`}
       ${recap != null && html`<${Recap} k=${recap} onClose=${() => { store.set(st => ({ meta: { ...st.meta, recapSeen: Math.max(st.meta.recapSeen ?? 0, recap) } })); setRecap(null); }} />`}
       ${unlocks && html`<${Unlock} ids=${unlocks} res=${res} onDone=${() => setUnlocks(null)} />`}
-      ${auth && html`<${Auth} start=${auth} onClose=${() => setAuth(null)} />`}
+      ${needSetup && !auth && html`<${Onboarding} s=${s} onDone=${() => setForceSetup(false)} />`}
+      ${(auth || mustSignIn) && html`<${Auth} start=${auth || 'welcome'} required=${mustSignIn} onClose=${() => setAuth(null)} />`}
       ${dialog && html`<${Dialog} d=${dialog} key=${dialog.title} onClose=${() => setDialog(null)} />`}
       ${toast && html`<${Island} key=${toast.id} toast=${toast} onAction=${() => setToast(null)} />`}
+      ${locked && html`<${Lock} onUnlock=${() => setLocked(false)} />`}
     </div>
   <//>`;
 }
