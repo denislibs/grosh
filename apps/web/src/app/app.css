@@ -261,7 +261,10 @@ html, body { height: 100%; }
   .auth-layer { position: absolute; inset: 0; z-index: 86; }
   .google-sheet { justify-items: center; text-align: center; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
   .google-sheet__text { margin: 0; color: var(--label-2); font-size: var(--t-subhead); max-width: 340px; }
-  .google-sheet__slot { width: 100%; max-width: 400px; min-height: 44px; display: grid; place-items: center; }
+  .google-sheet__slot { position: relative; width: 100%; max-width: 400px; min-height: 44px; }
+  .google-sheet__btn { display: grid; justify-items: center; opacity: 0; transition: opacity var(--dur-2) var(--ease-out); }
+  .google-sheet__btn.is-shown { opacity: 1; }
+  .google-sheet__wait { position: absolute; inset: 0; display: grid; place-items: center; }
   .google-sheet__slot[hidden] { display: none; }
   /* фрейм кнопки Google светлый: с той же схемой цвета браузер не заливает его белым в тёмной теме */
   .google-sheet__slot iframe { color-scheme: light; background: transparent; }
