@@ -8,7 +8,7 @@ import { Icon } from './primitives.js';
  * children может быть функцией (close) => …, чтобы контент закрывал шторку с анимацией.
  * onClosing вызывается в начале закрытия — чтобы экран позади успел вернуться в масштаб.
  */
-export function Sheet({ onClose, onClosing, auto, children }) {
+export function Sheet({ onClose, onClosing, auto, float, children }) {
   const [closing, setClosing] = useState(false);
   const ref = useRef(), drag = useRef(null);
   const close = () => { if (closing) return; setClosing(true); onClosing && onClosing(); setTimeout(onClose, 330); };
@@ -23,15 +23,20 @@ export function Sheet({ onClose, onClosing, auto, children }) {
   };
   const kids = typeof children === 'function' ? children(close) : Array.isArray(children) && typeof children[0] === 'function' ? children[0](close) : children;
   return html`<div class=${'scrim' + (closing ? ' is-closing' : '')} onClick=${close}></div>
-    <div class=${'sheet' + (auto ? ' sheet--auto' : '') + (closing ? ' is-closing' : '')} ref=${ref} role="dialog" aria-modal="true">
+    <div class=${'sheet' + (auto ? ' sheet--auto' : '') + (float ? ' sheet--float' : '') + (closing ? ' is-closing' : '')} ref=${ref} role="dialog" aria-modal="true">
       <div class="sheet__grab" onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}></div>
       ${kids}
     </div>`;
 }
 
-/** Шапка шторки: «Отмена» — заголовок — действие. */
-export function SheetNav({ title, onCancel, done, onDone, cancel }) {
+/** Шапка шторки: «Отмена» — заголовок — действие. glass — круглые стеклянные кнопки ✕ и ✓, как в iOS 26–27. */
+export function SheetNav({ title, onCancel, done, onDone, cancel, glass }) {
   const t = useLabels();
+  if (glass) return html`<div class="sheet__nav sheet__nav--glass">
+    <button class="glass-btn" aria-label=${cancel || t.cancel} onClick=${onCancel}><${Icon} n="close" /></button>
+    <span class="sheet__title">${title}</span>
+    ${done ? html`<button class="glass-btn glass-btn--tint" aria-label=${done} onClick=${onDone}><${Icon} n="check" /></button>` : html`<span></span>`}
+  </div>`;
   return html`<div class="sheet__nav">
     <button class="btn btn--plain" onClick=${onCancel}>${cancel || t.cancel}</button>
     <span class="sheet__title">${title}</span>

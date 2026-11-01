@@ -183,7 +183,7 @@ export function App() {
           : p === 'profile' ? html`<${Profile} s=${s} c=${c} res=${res} onClose=${() => closePage(p)} />`
           : html`<${Categories} s=${s} onClose=${() => closePage(p)} />`}</div>`)}
       </div>
-      ${sheet && html`<${Sheet} key=${sheet.kind + (sheet.tx?.id || sheet.id || sheet.it?.id || sheet.d?.id || '')} auto=${sheet.auto} onClosing=${() => setSheetOut(true)} onClose=${() => setSheet(null)}>${sheetBody}<//>`}
+      ${sheet && html`<${Sheet} key=${sheet.kind + (sheet.tx?.id || sheet.id || sheet.it?.id || sheet.d?.id || '')} auto=${sheet.auto} float=${sheet.kind === 'tx'} onClosing=${() => setSheetOut(true)} onClose=${() => setSheet(null)}>${sheetBody}<//>`}
       ${recap != null && html`<${Recap} k=${recap} onClose=${() => { store.set(st => ({ meta: { ...st.meta, recapSeen: Math.max(st.meta.recapSeen ?? 0, recap) } })); setRecap(null); }} />`}
       ${unlocks && html`<${Unlock} ids=${unlocks} res=${res} onDone=${() => setUnlocks(null)} />`}
       ${(auth || mustSignIn) && html`<${Auth} start=${auth || 'welcome'} required=${mustSignIn} onClose=${() => setAuth(null)} />`}

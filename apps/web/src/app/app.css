@@ -72,21 +72,24 @@ html, body { height: 100%; }
   .tx__dot .ms { font-size: 14px; }
   .tx__del { color: var(--red); }
   .tx__bottom { display: grid; gap: 12px; }
+  .tx__save { margin-top: 14px; }
   .cashpad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 8px; }
-  .cashpad__key { height: 58px; border: 0; border-radius: 14px; background: transparent; color: var(--label); font-family: var(--font-rounded); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 260ms var(--ease-out); }
+  .cashpad__key { height: 60px; border: 0; border-radius: 30px; background: transparent; color: var(--label); font-family: var(--font); font-size: 32px; font-weight: 400; font-variant-numeric: tabular-nums; display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 260ms var(--ease-out); }
   .cashpad__key:active { background: var(--fill-3); transition: none; }
   .cashpad__key .ms { font-size: 26px; }
   .cashpad__ops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; animation: fade-in var(--dur-2) var(--ease-out) both; }
   .cashpad__ops button { height: 40px; border: 0; border-radius: 12px; background: var(--fill-3); color: var(--accent); font-family: var(--font-rounded); font-size: 24px; font-weight: 600; cursor: pointer; }
-  .tx-cats { height: 238px; overflow-y: auto; scrollbar-width: thin; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 4px; align-content: start; padding: 4px 0; animation: fade-in var(--dur-2) var(--ease-out) both; }
+  .tx-cats { height: 246px; overflow-y: auto; scrollbar-width: thin; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 4px; align-content: start; padding: 4px 0; animation: fade-in var(--dur-2) var(--ease-out) both; }
   .tx-cats__item { min-width: 0; display: grid; justify-items: center; gap: 6px; border: 0; background: none; font: inherit; font-size: var(--t-caption1); color: var(--label-2); cursor: pointer; }
   .tx-cats__item span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tx-cats__item .sq { outline: 2.5px solid transparent; outline-offset: 2px; transition: outline-color var(--dur-2); }
   .tx-cats__item[aria-selected="true"] { color: var(--label); font-weight: 600; }
   .tx-cats__item[aria-selected="true"] .sq { outline-color: var(--tint); }
-  .tx__save { min-height: 52px; font-size: var(--t-headline); background: var(--accent); }
-  .tx-type { display: inline-flex; align-items: center; gap: 2px; padding: 4px 6px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: var(--t-headline); font-weight: 600; color: var(--label); cursor: pointer; }
+  .tx__save { background: var(--accent); }
+  .tx-type { height: 44px; padding: 0 12px 0 18px; gap: 2px; font-size: var(--t-headline); font-weight: 600; cursor: pointer; }
   .tx-type .ms { font-size: 20px; color: var(--label-2); }
+  .tx__chips .capsule.capsule:not(.capsule--glass) { height: 40px; padding: 0 16px; gap: 6px; font-size: var(--t-body); background: var(--glass); border: .5px solid var(--glass-edge); }
+  .tx__chips .capsule .ms { font-size: 20px; }
   .picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 4px; }
   .pick { display: grid; justify-items: center; gap: 5px; font-size: var(--t-caption1); letter-spacing: 0; color: var(--label-2); min-width: 0; }
   .pick span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

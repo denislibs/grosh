@@ -81,12 +81,12 @@ export function TxSheet({ tx, preset, close }) {
   });
 
   const accent = type === 'income' ? 'var(--green)' : 'var(--tint)';
-  const typeMenu = html`<${Menu} label="Тип записи" triggerClass="tx-type" align="center"
+  const typeMenu = html`<${Menu} label="Тип записи" triggerClass="capsule capsule--glass tx-type" align="center"
     items=${[{ label: 'Расход', checked: type === 'expense', onSelect: () => setType('expense') }, { label: 'Доход', checked: type === 'income', onSelect: () => setType('income') }]}>
     ${tx ? 'Запись' : type === 'income' ? 'Доход' : 'Расход'}<${Icon} n="expand_more" /><//>`;
 
   return html`
-    <${SheetNav} title=${typeMenu} onCancel=${close} />
+    <${SheetNav} glass title=${typeMenu} onCancel=${close} />
     <div class="sheet__body">
       <div class=${'tx' + (type === 'income' ? ' tx--income' : '')} style=${`--accent:${accent}`}>
         <div class="tx__top">
@@ -96,7 +96,7 @@ export function TxSheet({ tx, preset, close }) {
           </div>
           <input class="tx__note" id="tx-note" placeholder="Добавить заметку" value=${note} onInput=${e => setNote(e.target.value)} maxlength="80" />
           <div class="tx__chips">
-            <button class=${'capsule tx__cat' + (c ? '' : ' is-empty')} aria-pressed=${String(panel === 'cats')} onClick=${() => { buzz(4); pending.current = false; setPanel(p => (p === 'cats' ? 'keys' : 'cats')); }}>
+            <button class=${'capsule capsule--glass tx__cat' + (c ? '' : ' is-empty')} aria-pressed=${String(panel === 'cats')} onClick=${() => { buzz(4); pending.current = false; setPanel(p => (p === 'cats' ? 'keys' : 'cats')); }}>
               ${c ? html`<span class="tx__dot" style=${`--c:var(--${c.color})`}><${Icon} n=${c.icon} fill /></span>${c.name}` : html`<${Icon} n="category" />Категория`}
             </button>
             <${DatePicker} id="tx-date" label="Дата" value=${date} pressed=${false} max=${TODAY} weekStart=${s.settings.weekStart} format=${dayText} onChange=${setDate} />
@@ -116,7 +116,7 @@ export function TxSheet({ tx, preset, close }) {
                 onClick=${() => { if (k === '⌫' && holdDel.current === -1) { holdDel.current = 0; return; } press(k); }} ...${k === '⌫' ? holdOn(holdDel, () => setExpr('')) : {}}>
                 ${k === '⌫' ? html`<${Icon} n="backspace" />` : k}</button>`)}
             </div>`}
-          <button class="btn btn--filled tx__save" onClick=${() => save()}>${tx ? 'Сохранить' : 'Добавить'}</button>
+          <button class="btn btn--filled btn--capsule tx__save" onClick=${() => save()}>${tx ? 'Сохранить' : 'Добавить'}</button>
         </div>
       </div>
     </div>`;
