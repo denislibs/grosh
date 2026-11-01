@@ -104,7 +104,7 @@ export function Onboarding({ s, onDone }) {
     </div>`,
   ];
 
-  return html`<div class=${'auth onb' + (closing ? ' is-closing' : '')} role="dialog" aria-modal="true" aria-label="Настройка Гроша">
+  return html`<div class=${'auth auth--page onb' + (closing ? ' is-closing' : '')} role="main" aria-label="Настройка Гроша">
     <div class="auth__inner">
       <div class="auth__top">
         ${step > 0 && step < 4 && pinStep !== 'flow' ? html`<button class="back" onClick=${() => go(step - 1, true)}><${Icon} n="chevron_left" />Назад</button>` : html`<span></span>`}

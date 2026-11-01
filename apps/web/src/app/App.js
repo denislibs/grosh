@@ -145,6 +145,13 @@ export function App() {
     }
   };
   const ctx = { s, c, res, ui, session, sync };
+  // пока нет входа — только страница входа, приложение под ней не рисуем
+  if (mustSignIn || !ready) return html`<${AppContext.Provider} value=${ctx}>
+    <div class="app">
+      ${mustSignIn && html`<${Auth} start=${auth || 'welcome'} required onClose=${() => setAuth(null)} />`}
+      ${toast && html`<${Island} key=${toast.id} toast=${toast} onAction=${() => setToast(null)} />`}
+    </div>
+  <//>`;
   return html`<${AppContext.Provider} value=${ctx}>
     <div class=${'app' + (sheet && !sheetOut && !sheet.auto ? ' has-sheet' : '')}>
       <div class="stage">

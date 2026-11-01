@@ -136,7 +136,7 @@ export function Auth({ start = 'welcome', required = false, onClose }) {
     </div>`,
   };
   const backTo = { login: 'welcome', forgot: 'login', sent: 'login', magic: 'welcome' }[step];
-  return html`<div class=${'auth' + (closing ? ' is-closing' : '')} role="dialog" aria-modal="true" aria-label="Вход в Грош">
+  return html`<div class=${'auth' + (required ? ' auth--page' : '') + (closing ? ' is-closing' : '')} role=${required ? 'main' : 'dialog'} aria-modal=${required ? null : 'true'} aria-label="Вход в Грош">
     <div class="auth__inner">
       <div class="auth__top">
         ${backTo ? html`<button class="back" onClick=${() => go(backTo, true)}><${Icon} n="chevron_left" />Назад</button>` : html`<span></span>`}
