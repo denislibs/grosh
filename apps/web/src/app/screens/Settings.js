@@ -47,6 +47,7 @@ export function Settings({ s, onClose }) {
     </button></div>
     ${acc ? html`<div class="section"><div class="section__header">Аккаунт</div><div class="group">
         <button class="cell cell--icon" onClick=${() => syncNow()}><${Sq} icon="sync" color=${sync.status === 'error' ? 'red' : 'green'} /><span class="cell__main"><span>Синхронизация</span>${sync.error && html`<span class="cell__sub">${sync.error}</span>`}</span><span class="cell__value">${syncText}</span></button>
+        <button class="cell cell--icon" onClick=${() => ui.sheet({ kind: 'passkeys', auto: true })}><${Sq} icon="passkey" color="blue" /><span class="cell__main"><span>Ключи доступа</span><span class="cell__sub">Вход по Face ID без пароля</span></span><${Chevron} /></button>
         <button class="cell cell--destructive" onClick=${signOut}>Выйти</button>
       </div><div class="section__footer">Записи синхронизируются между устройствами, где вы вошли. Нажмите, чтобы синхронизировать сейчас.</div></div>`
       : html`<div class="group"><button class="cell cell--icon" onClick=${() => ui.auth('welcome')}><${Sq} icon="cloud_sync" color="blue" /><span class="cell__main"><span>Войти в Грош</span><span class="cell__sub">Синхронизация между устройствами</span></span><${Chevron} /></button></div>`}

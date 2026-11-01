@@ -26,6 +26,7 @@ import { CategorySheet } from './sheets/CategorySheet.js';
 import { BackupSheet, ImportSheet } from './sheets/BackupSheet.js';
 import { AvatarSheet } from './sheets/AvatarSheet.js';
 import { ShowcaseSheet } from './sheets/ShowcaseSheet.js';
+import { PasskeySheet } from './sheets/PasskeySheet.js';
 
 const TABS = ['home', 'calendar', 'stats', 'awards'];
 
@@ -112,6 +113,7 @@ export function App() {
       case 'showcase': return html`<${ShowcaseSheet} slot=${sheet.slot} res=${res} close=${close} />`;
       case 'inst': return html`<${InstSheet} it=${sheet.it} close=${close} />`;
       case 'dep': return html`<${DepSheet} d=${sheet.d} close=${close} />`;
+      case 'passkeys': return html`<${PasskeySheet} close=${close} />`;
     }
   };
   const ctx = { s, c, res, ui, session, sync };

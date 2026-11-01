@@ -199,6 +199,12 @@ html, body { height: 100%; }
   .auth__note { text-align: center; font-size: var(--t-caption1); color: var(--label-3); letter-spacing: 0; }
   .link { color: var(--tint); font: inherit; }
   .btn--apple { background: var(--label); color: var(--bg-2); }
+  .auth__links { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .auth-layer { position: absolute; inset: 0; z-index: 86; }
+  .google-sheet { justify-items: center; text-align: center; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .google-sheet__text { margin: 0; color: var(--label-2); font-size: var(--t-subhead); max-width: 340px; }
+  .google-sheet__slot { width: 100%; max-width: 400px; min-height: 44px; display: grid; place-items: center; }
+  .google-sheet__slot[hidden] { display: none; }
   .btn--filled .spinner i, .btn--apple .spinner i { background: currentColor; }
   .strength { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 8px 16px 0; }
   .strength i { height: 4px; border-radius: 2px; background: var(--fill-3); transition: background var(--dur-3); }
