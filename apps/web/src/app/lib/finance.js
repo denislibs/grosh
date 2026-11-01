@@ -21,20 +21,22 @@ export function instDue(s) {
   }
   return out;
 }
-// проценты начисляются каждый день, при капитализации раз в месяц прибавляются к телу
+// Проценты по правилу банков: со дня, следующего за днём взноса, по день возврата включительно
+// (деньги, внесённые в день X, начинают работать с X+1). База — 365 дней.
+// С капитализацией начисленное раз в месяц, в число открытия, прибавляется к сумме.
 export function depState(dp, txs, until = TODAY) {
   const ops = txs.filter(t => t.dep === dp.id && t.type === 'transfer' && !t.deletedAt).sort((a, b) => a.date.localeCompare(b.date));
   const end = dp.closedAt ? iso(new Date(dp.closedAt)) : until;
   const startDay = parse(dp.start).getDate();
   let bal = 0, pend = 0, interest = 0, put = 0, i = 0;
-  for (let d = parse(dp.start); iso(d) <= end; d = addDays(d, 1)) {
-    const ds = iso(d);
-    while (i < ops.length && ops[i].date <= ds) { bal += ops[i].amount; put += ops[i].amount; i++; }
+  const apply = before => { while (i < ops.length && ops[i].date < before) { bal += ops[i].amount; put += ops[i].amount; i++; } };
+  for (let d = addDays(parse(dp.start), 1); iso(d) <= end; d = addDays(d, 1)) {
+    apply(iso(d));
     const day = Math.max(0, bal) * dp.rate / 100 / 365;
     pend += day; interest += day;
-    const nd = addDays(d, 1);
-    if (dp.cap && nd.getDate() === Math.min(startDay, new Date(nd.getFullYear(), nd.getMonth() + 1, 0).getDate())) { bal += pend; pend = 0; }
+    if (dp.cap && d.getDate() === Math.min(startDay, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate())) { bal += pend; pend = 0; }
   }
+  apply('9999-12-31'); // взносы в последний день ещё не принесли процентов, но уже лежат на счету
   return { bal: bal + pend, put, interest, ops };
 }
 // ГЭСВ (эффективная) ↔ номинальная: при ежемесячной капитализации эфф = (1 + ном/12)^12 − 1

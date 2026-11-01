@@ -53,14 +53,24 @@ describe('депозит', () => {
   const tx = (amount, date) => ({ dep: 'd', type: 'transfer', amount, date });
   it('400 000 ₸ под 19% ГЭСВ за год дают ≈ 476 000 ₸', () => {
     const d = { id: 'd', start: '2026-01-01', rate: 17.52, cap: true };
-    const st = depState(d, [tx(400000, '2026-01-01')], '2026-12-31');
+    const st = depState(d, [tx(400000, '2026-01-01')], '2027-01-01');
     expect(st.bal / 400000 - 1).toBeCloseTo(0.19, 2);
     expect(st.put).toBe(400000);
   });
   it('без капитализации проценты простые', () => {
     const d = { id: 'd', start: '2026-01-01', rate: 12, cap: false };
-    const st = depState(d, [tx(100000, '2026-01-01')], '2026-12-31');
-    expect(st.interest).toBeCloseTo(12000, -1);
+    const st = depState(d, [tx(100000, '2026-01-01')], '2027-01-01');
+    expect(st.interest).toBeCloseTo(12000, 0);
+  });
+  it('проценты со дня после взноса по день возврата включительно: 3 месяца с 1 ноября — 92 дня', () => {
+    const d = { id: 'd', start: '2026-11-01', rate: 10, cap: false };
+    const st = depState(d, [tx(365000, '2026-11-01')], '2027-02-01');
+    expect(st.interest).toBeCloseTo(365000 * 0.1 * 92 / 365, 6);
+  });
+  it('в день взноса деньги ещё не приносят процентов', () => {
+    const d = { id: 'd', start: '2026-11-01', rate: 10, cap: false };
+    expect(depState(d, [tx(100000, '2026-11-01')], '2026-11-01').interest).toBe(0);
+    expect(depState(d, [tx(100000, '2026-11-01')], '2026-11-02').interest).toBeCloseTo(100000 * 0.1 / 365, 6);
   });
   it('закрытый депозит перестаёт начислять', () => {
     const d = { id: 'd', start: '2026-01-01', rate: 12, cap: false, closedAt: new Date(2026, 0, 31).getTime() };
