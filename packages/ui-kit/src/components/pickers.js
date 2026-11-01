@@ -32,7 +32,7 @@ export function Popover({ anchor, open, onClose, align = 'end', minWidth, label,
       const a = anchor.current?.getBoundingClientRect(), el = ref.current;
       if (!a || !el) return;
       const w = el.offsetWidth, h = el.offsetHeight;
-      const left = clamp(align === 'end' ? a.right - w : a.left, 8, innerWidth - w - 8);
+      const left = clamp(align === 'end' ? a.right - w : align === 'center' ? a.left + (a.width - w) / 2 : a.left, 8, innerWidth - w - 8);
       let top = a.bottom + 6, up = false;
       if (top + h > innerHeight - 8 && a.top - h - 6 > 8) { top = a.top - h - 6; up = true; }
       top = clamp(top, 8, Math.max(8, innerHeight - h - 8));

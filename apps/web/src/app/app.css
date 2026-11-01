@@ -52,15 +52,41 @@ html, body { height: 100%; }
   .cell-wrap .cell { touch-action: pan-y; }
   .more { color: var(--tint); justify-content: center; }
 
-  /* шторка операции */
-  .tx { --accent: var(--red); display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
-  .tx--income { --accent: var(--green); }
-  .amount { text-align: center; padding: 4px 0; }
-  .amount__expr { font-size: var(--t-subhead); color: var(--label-2); min-height: 20px; font-variant-numeric: tabular-nums; }
-  .amount__val { font-family: var(--font-rounded); font-weight: 700; font-size: 52px; letter-spacing: -.5px; line-height: 1.1; font-variant-numeric: tabular-nums; }
-  .amount__val .cur { color: var(--label-3); font-size: 34px; margin-left: 4px; }
-  .tx--income .amount__val { color: var(--green); }
+  /* шторка записи — как перевод в Apple Cash: сумма в центре, внизу цифры и одна кнопка */
+  .sheet__body:has(> .tx) { display: flex; flex-direction: column; padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)); }
+  .sheet__body > .tx { flex: 1; }
+  .tx { --accent: var(--tint); display: flex; flex-direction: column; gap: 20px; min-height: 100%; }
+  .tx__top { flex: 1; min-height: 210px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px; }
+  .amount { text-align: center; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .amount__expr { min-height: 20px; font-size: var(--t-subhead); color: var(--label-2); font-variant-numeric: tabular-nums; }
+  .amount__val { font-family: var(--font-rounded); font-size: 64px; font-weight: 700; letter-spacing: -1px; line-height: 1.05; font-variant-numeric: tabular-nums; }
+  .amount__val.is-empty { color: var(--label-3); }
+  .amount__val .cur { margin-left: 6px; font-size: .58em; font-weight: 600; color: var(--label-3); }
+  .tx--income .amount__val:not(.is-empty) { color: var(--green); }
   .amount.is-shake { animation: shake 400ms var(--ease-ios); }
+  .tx__note { width: min(100%, 320px); padding: 4px 0; border: 0; outline: none; background: none; text-align: center; font: inherit; font-size: var(--t-body); color: var(--label); }
+  .tx__note::placeholder { color: var(--label-3); }
+  .tx__chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+  .tx__cat.is-empty:not([aria-pressed="true"]) { color: var(--tint); }
+  .tx__dot { width: 22px; height: 22px; margin-left: -4px; border-radius: 6px; display: grid; place-items: center; background: var(--c); color: #fff; }
+  .tx__dot .ms { font-size: 14px; }
+  .tx__del { color: var(--red); }
+  .tx__bottom { display: grid; gap: 12px; }
+  .cashpad { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2px 8px; }
+  .cashpad__key { height: 58px; border: 0; border-radius: 14px; background: transparent; color: var(--label); font-family: var(--font-rounded); font-size: 30px; font-weight: 500; font-variant-numeric: tabular-nums; display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; transition: background-color 260ms var(--ease-out); }
+  .cashpad__key:active { background: var(--fill-3); transition: none; }
+  .cashpad__key .ms { font-size: 26px; }
+  .cashpad__ops { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; animation: fade-in var(--dur-2) var(--ease-out) both; }
+  .cashpad__ops button { height: 40px; border: 0; border-radius: 12px; background: var(--fill-3); color: var(--accent); font-family: var(--font-rounded); font-size: 24px; font-weight: 600; cursor: pointer; }
+  .tx-cats { height: 238px; overflow-y: auto; scrollbar-width: thin; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px 4px; align-content: start; padding: 4px 0; animation: fade-in var(--dur-2) var(--ease-out) both; }
+  .tx-cats__item { min-width: 0; display: grid; justify-items: center; gap: 6px; border: 0; background: none; font: inherit; font-size: var(--t-caption1); color: var(--label-2); cursor: pointer; }
+  .tx-cats__item span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tx-cats__item .sq { outline: 2.5px solid transparent; outline-offset: 2px; transition: outline-color var(--dur-2); }
+  .tx-cats__item[aria-selected="true"] { color: var(--label); font-weight: 600; }
+  .tx-cats__item[aria-selected="true"] .sq { outline-color: var(--tint); }
+  .tx__save { min-height: 52px; font-size: var(--t-headline); background: var(--accent); }
+  .tx-type { display: inline-flex; align-items: center; gap: 2px; padding: 4px 6px; border: 0; border-radius: 8px; background: none; font: inherit; font-size: var(--t-headline); font-weight: 600; color: var(--label); cursor: pointer; }
+  .tx-type .ms { font-size: 20px; color: var(--label-2); }
   .picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 4px; }
   .pick { display: grid; justify-items: center; gap: 5px; font-size: var(--t-caption1); letter-spacing: 0; color: var(--label-2); min-width: 0; }
   .pick span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -69,11 +95,8 @@ html, body { height: 100%; }
   .pick[aria-pressed="true"] .sq { outline-color: var(--c); }
   .row-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
   .row-scroll::-webkit-scrollbar { display: none; }
-  .sheet__body:has(> .tx) { display: flex; flex-direction: column; }
-  .sheet__body > .tx { flex: 1; min-height: auto; }
   .date-cap { position: relative; }
   .date-cap input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-  .tx .pad { margin-top: auto; }
 
   /* календарь */
   .cal-card { padding: 12px 8px 8px; }
