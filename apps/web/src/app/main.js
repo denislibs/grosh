@@ -7,6 +7,7 @@ import { makeEmpty } from './lib/seed.js';
 import { SCHEMA, idb, store, ui, useStore } from './state/store.js';
 import { initSync } from './state/sync.js';
 import { lock } from './state/lock.js';
+import { initPwa } from './state/pwa.js';
 import { App } from './App.js';
 import { Lock } from './screens/Lock.js';
 
@@ -35,6 +36,7 @@ async function start() {
 }
 
 (async function boot() {
+  initPwa();
   try { await idb.open(); await lock.init(); } catch (e) { idb.db = null; }
   if (!lock.on) return start();
   let theme = 'system';

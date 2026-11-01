@@ -31,6 +31,7 @@ import { PasskeySheet } from './sheets/PasskeySheet.js';
 import { PinSheet } from './sheets/PinSheet.js';
 import { Lock } from './screens/Lock.js';
 import { Onboarding } from './screens/Onboarding.js';
+import { UpdateBar } from './components/UpdateBar.js';
 import { lock } from './state/lock.js';
 
 const TABS = ['home', 'calendar', 'stats', 'awards'];
@@ -158,6 +159,7 @@ export function App() {
         <div class="app-icon"><${Icon} n="savings" /></div><${Spinner} /><p>Загружаем ваши данные…</p>
       </div>`}
       ${toast && html`<${Island} key=${toast.id} toast=${toast} onAction=${() => setToast(null)} />`}
+      <${UpdateBar} page />
     </div>
   <//>`;
   return html`<${AppContext.Provider} value=${ctx}>
@@ -184,6 +186,7 @@ export function App() {
       ${(auth || mustSignIn) && html`<${Auth} start=${auth || 'welcome'} required=${mustSignIn} onClose=${() => setAuth(null)} />`}
       ${dialog && html`<${Dialog} d=${dialog} key=${dialog.title} onClose=${() => setDialog(null)} />`}
       ${toast && html`<${Island} key=${toast.id} toast=${toast} onAction=${() => setToast(null)} />`}
+      ${!locked && html`<${UpdateBar} page=${!!(needSetup || auth)} />`}
       ${locked && html`<${Lock} onUnlock=${() => setLocked(false)} />`}
     </div>
   <//>`;

@@ -10,7 +10,9 @@ export default defineConfig({
   plugins: [
     preact(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // новая версия ждёт нажатия «Обновить» (см. src/app/state/pwa.js), регистрирует воркер само приложение
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Грош — учёт трат',
@@ -30,7 +32,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,woff2,webmanifest}'],
+        cleanupOutdatedCaches: true,
+        navigateFallbackDenylist: [/privacy\.html$/],
         runtimeCaching: [
           { urlPattern: /^https:\/\/fonts\.googleapis\.com\//, handler: 'StaleWhileRevalidate', options: { cacheName: 'google-fonts-css' } },
           // аватарки из Supabase Storage: имя файла не меняется, поэтому кешируем навсегда — видно и офлайн

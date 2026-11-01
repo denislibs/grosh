@@ -220,6 +220,13 @@ html, body { height: 100%; }
   .cat-chip[aria-pressed="true"] .sq { background: var(--c); color: #fff; }
   .splash { display: grid; place-content: center; justify-items: center; gap: 16px; color: var(--label-2); font-size: var(--t-subhead); animation-delay: 150ms; }
   .splash p { margin: 0; }
+  .update-bar { position: absolute; z-index: 92; left: 12px; right: 12px; bottom: calc(66px + env(safe-area-inset-bottom, 0px)); margin: 0 auto; max-width: 420px; min-height: 52px; padding: 6px 6px 6px 18px; display: flex; align-items: center; gap: 10px; border-radius: 26px; background: var(--island); color: var(--on-island); font-size: var(--t-subhead); font-weight: 500; letter-spacing: -.24px; animation: rise var(--dur-4) var(--ease-ios) both; }
+  .update-bar--page { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+  .update-bar__text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .update-bar__btn { min-height: 36px; padding: 0 14px; border: 0; border-radius: 18px; background: var(--tint); color: #fff; font: inherit; font-weight: 600; cursor: pointer; display: grid; place-items: center; }
+  .update-bar__btn .spinner i { background: #fff; }
+  .update-bar__close { width: 32px; height: 32px; border: 0; border-radius: 50%; background: transparent; color: inherit; opacity: .6; cursor: pointer; display: grid; place-items: center; }
+  .update-bar__close .ms { font-size: 20px; }
   .lock { position: absolute; inset: 0; z-index: 95; background: var(--bg); display: grid; place-items: center; overflow-y: auto; padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); animation: fade-in var(--dur-2) var(--ease-out) both; }
   .lock.is-closing { animation: fade-out 280ms var(--ease-out) both; }
   .lock__inner { display: grid; justify-items: center; gap: 8px; }
@@ -257,6 +264,7 @@ html, body { height: 100%; }
     .split--wide { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
     .badges { grid-template-columns: repeat(6, minmax(0, 1fr)); }
     .chart { height: 220px; }
+    .update-bar { left: auto; right: 24px; bottom: 24px; width: 380px; }
     .story { width: 400px; height: min(780px, calc(100% - 48px)); border-radius: 22px; }
     .recap { background: rgba(0, 0, 0, .85); }
   }
