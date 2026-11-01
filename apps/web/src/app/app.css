@@ -203,6 +203,7 @@ html, body { height: 100%; }
   .auth.is-closing { animation: sheet-out var(--dur-3) var(--ease-ios) both; }
   .auth--page, .auth--page.is-closing { animation-name: fade-in; }
   .auth--page.is-closing { animation-name: fade-out; }
+  .onb:not(.is-closing), .auth__step.is-still { animation: none; }
   .auth__inner { position: relative; max-width: 440px; min-height: 100%; margin: 0 auto; padding: calc(60px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; }
   .auth__top { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; }
   .auth__step { flex: 1; display: flex; flex-direction: column; gap: 18px; animation: auth-in var(--dur-4) var(--ease-ios) both; }

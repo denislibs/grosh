@@ -43,7 +43,8 @@ export function Onboarding({ s, onDone }) {
     setClosing(true); setTimeout(onDone, 330);
   };
 
-  const cls = 'auth__step' + (back ? ' is-back' : '');
+  // первый шаг появляется сразу — без въезда сбоку
+  const cls = 'auth__step' + (back ? ' is-back' : '') + (step === 0 && !back ? ' is-still' : '');
   const next = (label = 'Дальше', disabled = false, run = () => go(step + 1)) => html`<button class="btn btn--filled" disabled=${disabled} onClick=${run}>${label}</button>`;
   const period = day === 1 ? 'с 1-го до конца месяца' : `с ${day}-го по ${day - 1}-е`;
 

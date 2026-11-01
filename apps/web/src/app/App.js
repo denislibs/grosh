@@ -152,12 +152,16 @@ export function App() {
   };
   const ctx = { s, c, res, ui, session, sync };
   // пока нет входа — только страница входа, приложение под ней не рисуем
-  if (mustSignIn || !ready || checking) return html`<${AppContext.Provider} value=${ctx}>
+  // вход, загрузка и онбординг — отдельные страницы: приложение под ними не рисуем, чтобы оно не мелькало
+  const setup = needSetup && !auth;
+  if (mustSignIn || !ready || checking || setup) return html`<${AppContext.Provider} value=${ctx}>
     <div class="app">
       ${mustSignIn && html`<${Auth} start=${auth || 'welcome'} required onClose=${() => setAuth(null)} />`}
       ${!mustSignIn && checking && html`<div class="auth auth--page splash" role="main" aria-busy="true">
         <div class="app-icon"><${Icon} n="savings" /></div><${Spinner} /><p>Загружаем ваши данные…</p>
       </div>`}
+      ${!mustSignIn && !checking && setup && html`<${Onboarding} s=${s} onDone=${() => setForceSetup(false)} />`}
+      ${dialog && html`<${Dialog} d=${dialog} key=${dialog.title} onClose=${() => setDialog(null)} />`}
       ${toast && html`<${Island} key=${toast.id} toast=${toast} onAction=${() => setToast(null)} />`}
       <${UpdateBar} page />
     </div>
@@ -182,11 +186,10 @@ export function App() {
       ${sheet && html`<${Sheet} key=${sheet.kind + (sheet.tx?.id || sheet.id || sheet.it?.id || sheet.d?.id || '')} auto=${sheet.auto} onClosing=${() => setSheetOut(true)} onClose=${() => setSheet(null)}>${sheetBody}<//>`}
       ${recap != null && html`<${Recap} k=${recap} onClose=${() => { store.set(st => ({ meta: { ...st.meta, recapSeen: Math.max(st.meta.recapSeen ?? 0, recap) } })); setRecap(null); }} />`}
       ${unlocks && html`<${Unlock} ids=${unlocks} res=${res} onDone=${() => setUnlocks(null)} />`}
-      ${needSetup && !auth && html`<${Onboarding} s=${s} onDone=${() => setForceSetup(false)} />`}
       ${(auth || mustSignIn) && html`<${Auth} start=${auth || 'welcome'} required=${mustSignIn} onClose=${() => setAuth(null)} />`}
       ${dialog && html`<${Dialog} d=${dialog} key=${dialog.title} onClose=${() => setDialog(null)} />`}
       ${toast && html`<${Island} key=${toast.id} toast=${toast} onAction=${() => setToast(null)} />`}
-      ${!locked && html`<${UpdateBar} page=${!!(needSetup || auth)} />`}
+      ${!locked && html`<${UpdateBar} page=${!!auth} />`}
       ${locked && html`<${Lock} onUnlock=${() => setLocked(false)} />`}
     </div>
   <//>`;
