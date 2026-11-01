@@ -174,16 +174,15 @@ export function App() {
         ${tab === 'stats' && html`<${Stats} key="stats" s=${s} c=${c} />`}
         ${tab === 'awards' && html`<${Awards} key="awards" s=${s} c=${c} res=${res} />`}
         <nav class="tabbar" aria-label="Разделы">
-          ${tabBtn(tabs[0])}${tabBtn(tabs[1])}
-          <button class="tab tab--add" aria-label="Новая запись" onClick=${() => { buzz(8); ui.sheet({ kind: 'tx' }); }}><${Icon} n="add_circle" fill /><span class="tab__label-wide">Новая запись</span><span class="tab__label-short">Добавить</span></button>
-          ${tabBtn(tabs[2])}${tabBtn(tabs[3])}
+          <div class="tabbar__pill">${tabs.map(tabBtn)}</div>
+          <button class="tab tab--add" aria-label="Новая запись" onClick=${() => { buzz(8); ui.sheet({ kind: 'tx' }); }}><${Icon} n="add" /><span class="tab__label-wide">Новая запись</span></button>
         </nav>
         ${pages.map(p => html`<div key=${p}>${
           p === 'settings' ? html`<${Settings} s=${s} onClose=${() => closePage(p)} />`
           : p === 'profile' ? html`<${Profile} s=${s} c=${c} res=${res} onClose=${() => closePage(p)} />`
           : html`<${Categories} s=${s} onClose=${() => closePage(p)} />`}</div>`)}
       </div>
-      ${sheet && html`<${Sheet} key=${sheet.kind + (sheet.tx?.id || sheet.id || sheet.it?.id || sheet.d?.id || '')} auto=${sheet.auto} float=${sheet.kind === 'tx'} onClosing=${() => setSheetOut(true)} onClose=${() => setSheet(null)}>${sheetBody}<//>`}
+      ${sheet && html`<${Sheet} key=${sheet.kind + (sheet.tx?.id || sheet.id || sheet.it?.id || sheet.d?.id || '')} auto=${sheet.auto} onClosing=${() => setSheetOut(true)} onClose=${() => setSheet(null)}>${sheetBody}<//>`}
       ${recap != null && html`<${Recap} k=${recap} onClose=${() => { store.set(st => ({ meta: { ...st.meta, recapSeen: Math.max(st.meta.recapSeen ?? 0, recap) } })); setRecap(null); }} />`}
       ${unlocks && html`<${Unlock} ids=${unlocks} res=${res} onDone=${() => setUnlocks(null)} />`}
       ${(auth || mustSignIn) && html`<${Auth} start=${auth || 'welcome'} required=${mustSignIn} onClose=${() => setAuth(null)} />`}

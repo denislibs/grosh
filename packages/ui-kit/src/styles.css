@@ -46,9 +46,11 @@
   --t-footnote: 13px; --t-caption1: 12px; --t-caption2: 11px;
 
   /* форма */
-  --r-group: 10px;
-  --r-btn: 12px;
-  --r-sheet: 10px;
+  --r-group: 24px;
+  --r-btn: 999px;
+  --r-sheet: 38px;
+  --r-card: 22px;
+  --bg-elevated: #FFFFFF;
   --r-icon: 7px;
   --hair: .5px;
   --hit: 44px;
@@ -66,7 +68,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #000000; --bg-2: #1C1C1E; --bg-3: #2C2C2E; --highlight: #3A3A3C; --material: rgba(29, 29, 31, .78); --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 255, 255, .14);
+    --bg: #000000; --bg-2: #1C1C1E; --bg-3: #2C2C2E; --highlight: #3A3A3C; --bg-elevated: #1C1C1E; --material: rgba(29, 29, 31, .78); --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 255, 255, .14);
     --label: #FFFFFF; --label-2: rgba(235, 235, 245, .6); --label-3: rgba(235, 235, 245, .3); --label-4: rgba(235, 235, 245, .16);
     --sep: rgba(84, 84, 88, .65);
     --fill: rgba(120, 120, 128, .36); --fill-2: rgba(120, 120, 128, .32); --fill-3: rgba(118, 118, 128, .24); --fill-4: rgba(118, 118, 128, .18);
@@ -80,7 +82,7 @@
   }
 }
 :root[data-theme="dark"] {
-  --bg: #000000; --bg-2: #1C1C1E; --bg-3: #2C2C2E; --highlight: #3A3A3C; --material: rgba(29, 29, 31, .78); --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 255, 255, .14);
+  --bg: #000000; --bg-2: #1C1C1E; --bg-3: #2C2C2E; --highlight: #3A3A3C; --bg-elevated: #1C1C1E; --material: rgba(29, 29, 31, .78); --glass: rgba(255, 255, 255, .1); --glass-edge: rgba(255, 255, 255, .14);
   --label: #FFFFFF; --label-2: rgba(235, 235, 245, .6); --label-3: rgba(235, 235, 245, .3); --label-4: rgba(235, 235, 245, .16);
   --sep: rgba(84, 84, 88, .65);
   --fill: rgba(120, 120, 128, .36); --fill-2: rgba(120, 120, 128, .32); --fill-3: rgba(118, 118, 128, .24); --fill-4: rgba(118, 118, 128, .18);
@@ -652,8 +654,6 @@ input:autofill { -webkit-text-fill-color: var(--label); caret-color: var(--label
 }
 .sheet--auto { top: auto; max-height: calc(100% - env(safe-area-inset-top, 0px) - 22px); }
 /* «парящая» шторка: отступы от краёв и крупное скругление, как у листов в iOS 26–27 */
-.sheet--float { left: 8px; right: 8px; bottom: 8px; border-radius: var(--r-float, 38px); background: var(--bg-2); }
-.sheet--float .sheet__body { padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) - 8px)); }
 .sheet__nav--glass { min-height: 60px; padding: 4px 12px 0; }
 .sheet.is-closing { animation: sheet-out var(--dur-3) var(--ease-ios) both; }
 .sheet__grab { flex: none; padding: 5px 0 0; display: grid; place-items: center; touch-action: none; cursor: grab; }
@@ -741,3 +741,81 @@ input:autofill { -webkit-text-fill-color: var(--label); caret-color: var(--label
 @media (max-height: 640px) { .passcode__pad { gap: 10px 22px; grid-template-columns: repeat(3, 68px); } .passcode__key, .passcode__slot { width: 68px; height: 68px; } }
 @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
 @keyframes badge-in { from { transform: rotateY(-540deg) scale(.4); } }
+
+
+/* ==========================================================================
+   Liquid Glass — внешний вид iOS 26–27
+   Парящие стеклянные панели, капсулы и крупные скругления. Стекло — полупрозрачность,
+   размытие и тонкая кромка; теней, градиентов и свечения нет.
+   ========================================================================== */
+
+/* шторки парят над экраном; в тёмной теме — приподнятый фон, как у листов iOS */
+.sheet { left: 8px; right: 8px; bottom: 8px; border-radius: var(--r-sheet); }
+.sheet__body { padding-bottom: max(16px, calc(env(safe-area-inset-bottom, 0px) - 4px)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .sheet { --bg: #1C1C1E; --bg-2: #2C2C2E; --seg-thumb: #636366; } }
+:root[data-theme="dark"] .sheet { --bg: #1C1C1E; --bg-2: #2C2C2E; }
+
+/* круглые кнопки — стеклянные */
+.circle-btn { width: 36px; height: 36px; background: var(--glass); border: .5px solid var(--glass-edge); color: var(--label); -webkit-backdrop-filter: blur(20px) saturate(1.8); backdrop-filter: blur(20px) saturate(1.8); }
+.circle-btn .ms { font-size: 20px; }
+
+/* сегменты и поиск — капсулы */
+.seg { height: 36px; padding: 3px; border-radius: 999px; }
+.seg__thumb { top: 3px; bottom: 3px; left: 3px; width: calc((100% - 6px) / var(--n)); border-radius: 999px; }
+.search__field { height: 40px; padding: 0 12px; border-radius: 999px; }
+.capsule { height: 36px; padding: 0 16px; }
+
+/* меню и всплывающие окна */
+.menu { border-radius: 22px; border-color: var(--glass-edge); }
+
+/* алерт: крупное скругление, действия — капсулы */
+.alert { width: 300px; border-radius: 30px; border: .5px solid var(--glass-edge); }
+.alert__body { padding: 24px 22px 14px; }
+.alert__actions { gap: 8px; padding: 6px 14px 14px; border-top: 0; }
+.alert__btn { min-height: 48px; border-radius: 999px; background: var(--fill-3); color: var(--label); font-weight: 500; }
+.alert__btn + .alert__btn, .alert__actions--stack .alert__btn + .alert__btn { border: 0; }
+.alert__btn:active { background: var(--fill); }
+.alert__btn--bold { background: var(--tint); color: #fff; font-weight: 600; }
+.alert__btn--bold:active { background: var(--tint); opacity: .8; }
+.alert__btn--destructive { color: var(--red); }
+.action-sheet__group, .action-sheet__cancel { border-radius: 28px; }
+
+/* навбар при прокрутке — стекло без жёсткой линии */
+.nav.is-scrolled { border-bottom-color: transparent; }
+
+/* таббар: парящая стеклянная капсула с вкладками и отдельный круг «+» */
+.tabbar {
+  left: 12px; right: 12px; bottom: max(10px, calc(env(safe-area-inset-bottom, 0px) - 6px));
+  display: flex; align-items: center; gap: 10px; padding: 0;
+  background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0;
+}
+.tabbar__pill {
+  flex: 1; min-width: 0; height: 64px; padding: 4px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  border-radius: 32px; background: var(--material); border: .5px solid var(--glass-edge);
+  -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+}
+.tabbar .tab { align-content: center; border-radius: 28px; padding: 0; color: var(--label); transition: background-color var(--dur-2), color var(--dur-2); }
+.tabbar .tab[aria-current="page"] { color: var(--tint); background: var(--fill-3); }
+.tabbar .tab--add {
+  flex: none; width: 64px; height: 64px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--tint); color: #fff; border: .5px solid var(--glass-edge);
+}
+.tabbar .tab--add .ms { font-size: 32px; }
+.tabbar .tab--add > span:not(.ms) { display: none; }
+
+@container app (min-width: 900px) {
+  /* сайдбар — парящая стеклянная панель, как в iPadOS 26 */
+  .tabbar {
+    top: 8px; bottom: 8px; left: 8px; right: auto; width: 252px;
+    display: flex; flex-direction: column; align-items: stretch; gap: 2px; padding: 14px 10px;
+    border-radius: 26px; background: var(--material); border: .5px solid var(--glass-edge);
+    -webkit-backdrop-filter: blur(24px) saturate(1.8); backdrop-filter: blur(24px) saturate(1.8);
+  }
+  .tabbar__pill { display: contents; }
+  .tabbar .tab { justify-content: start; border-radius: 14px; padding: 9px 12px; }
+  .tabbar .tab[aria-current="page"] { background: var(--tint); color: #fff; }
+  .tabbar .tab--add { width: auto; height: auto; min-height: 44px; border-radius: 999px; justify-content: center; grid-auto-flow: column; gap: 8px; }
+  .tabbar .tab--add .ms { font-size: 22px; }
+  .tabbar .tab--add > span.tab__label-wide { display: inline; }
+  .sheet, .sheet--auto { left: 50%; right: auto; bottom: auto; border-radius: 30px; }
+}

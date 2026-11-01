@@ -13,7 +13,8 @@ const ms = v => (v ? new Date(v).getTime() : null);
 const TABLES = {
   tx: {
     table: 'transactions', conflict: 'id',
-    toRow: (t, at) => ({ id: t.id, type: t.type, cat: t.cat, amount: Math.round(t.amount), date: t.date, note: t.note || '', installment_id: t.inst || null, installment_k: t.k ?? null, deposit_id: t.dep || null, created_at: ts(t.createdAt || at), updated_at: ts(at), deleted_at: ts(t.deletedAt) }),
+    // запись, которую убрали из списка целиком (стирание данных, пример), тоже удаляется на сервере — иначе вернётся при следующей синхронизации
+    toRow: (t, at, del) => ({ id: t.id, type: t.type, cat: t.cat, amount: Math.round(t.amount), date: t.date, note: t.note || '', installment_id: t.inst || null, installment_k: t.k ?? null, deposit_id: t.dep || null, created_at: ts(t.createdAt || at), updated_at: ts(at), deleted_at: ts(t.deletedAt || (del ? at : null)) }),
     fromRow: r => ({ id: r.id, type: r.type, cat: r.cat, amount: Number(r.amount), date: r.date, note: r.note || '', ...(r.installment_id ? { inst: r.installment_id, k: r.installment_k } : {}), ...(r.deposit_id ? { dep: r.deposit_id } : {}), createdAt: ms(r.created_at), updatedAt: ms(r.updated_at), deletedAt: ms(r.deleted_at) }),
     soft: true,
   },

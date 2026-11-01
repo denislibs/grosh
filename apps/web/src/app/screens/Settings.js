@@ -27,8 +27,8 @@ export function Settings({ s, onClose }) {
     ui.toast('CSV сохранён');
   };
   const reset = () => ui.dialog({
-    title: 'Стереть все данные?', msg: 'Записи, челленджи и награды удалятся с этого устройства. Отменить это нельзя.',
-    actions: [{ label: 'Отмена', style: 'bold' }, { label: 'Стереть', style: 'destructive', run: () => { store.set(st => ({ tx: [], challenges: [], meta: { ...st.meta, backups: 0, lastBackupAt: null, calcUsed: false, recapSeen: null, ach: {}, demo: false }, profile: { ...st.profile, showcase: [], since: TODAY } })); ui.toast('Все данные стёрты'); } }],
+    title: 'Стереть все данные?', msg: `Записи, рассрочки, депозиты, челленджи и награды удалятся ${s.profile.account ? 'с этого устройства и из аккаунта' : 'с этого устройства'}. Отменить это нельзя.`,
+    actions: [{ label: 'Отмена', style: 'bold' }, { label: 'Стереть', style: 'destructive', run: () => { store.set(st => ({ tx: [], installments: [], deposits: [], challenges: [], meta: { ...st.meta, backups: 0, lastBackupAt: null, calcUsed: false, recapSeen: null, ach: {}, demo: false }, profile: { ...st.profile, showcase: [], since: TODAY } })); ui.toast('Все данные стёрты'); } }],
   });
   // при выходе устройство очищается: записи остаются в аккаунте, а не у того, кто возьмёт телефон
   const signOut = () => ui.dialog({
