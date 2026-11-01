@@ -1,7 +1,8 @@
 import { html } from 'htm/preact';
+import { UserAvatar } from '../components/UserAvatar.js';
 import { useState } from 'preact/hooks';
 import { Icon, Sq, Chevron, Screen, useCountUp } from '@grosh/ui-kit';
-import { M_GEN, M_NOM, TODAY, cap, dateLong, diffDays, fmt, initials, money, pRange, plural } from '../lib/dates.js';
+import { M_GEN, M_NOM, TODAY, cap, dateLong, diffDays, fmt, money, pRange, plural } from '../lib/dates.js';
 import { depState, effFromNom, fmtRate, instState } from '../lib/finance.js';
 import { catOf, ui } from '../state/store.js';
 import { Ledger } from '../components/Ledger.js';
@@ -40,7 +41,7 @@ export function Home({ s, c }) {
   const curM = c.cur % 12;
   return html`<${Screen} title="Обзор"
     right=${html`<button class="circle-btn" aria-label="Настройки" onClick=${() => ui.page('settings')}><${Icon} n="settings" /></button>`}
-    accessory=${html`<button class="avatar" style=${`--c:var(--${s.profile.color})`} aria-label="Профиль" onClick=${() => ui.page('profile')}>${initials(s.profile.name) || html`<${Icon} n=\"person\" fill />`}</button>`}>
+    accessory=${html`<${UserAvatar} p=${s.profile} label="Профиль" onClick=${() => ui.page('profile')} />`}>
     <div class="split">
       <div class="col">
         <div class="hero">

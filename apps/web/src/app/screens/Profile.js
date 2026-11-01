@@ -1,6 +1,7 @@
 import { html } from 'htm/preact';
+import { UserAvatar } from '../components/UserAvatar.js';
 import { Icon, Sq, Page } from '@grosh/ui-kit';
-import { TODAY, dateLong, diffDays, initials, parse, plural } from '../lib/dates.js';
+import { TODAY, dateLong, diffDays, parse, plural } from '../lib/dates.js';
 import { ACH, ACH_BY, streakNow } from '../lib/achievements.js';
 import { store, ui } from '../state/store.js';
 import { CountUp } from './Stats.js';
@@ -13,7 +14,7 @@ export function Profile({ s, c, res, onClose }) {
   const setName = v => store.set(st => ({ profile: { ...st.profile, name: v.slice(0, 24) || 'Без имени' } }));
   return html`<${Page} title="Профиль" onClose=${onClose}>
     <div class="profile-head">
-      <button class="avatar avatar--xl" style=${`--c:var(--${s.profile.color})`} onClick=${() => ui.sheet({ kind: 'avatar', auto: true })} aria-label="Сменить цвет">${initials(s.profile.name) || html`<${Icon} n=\"person\" fill />`}</button>
+      <${UserAvatar} p=${s.profile} size="xl" label="Фото и цвет профиля" onClick=${() => ui.sheet({ kind: 'avatar', auto: true })} />
       <input class="name-input" id="profile-name" value=${s.profile.name} onChange=${e => setName(e.target.value.trim())} aria-label="Имя" />
       <span class="secondary t-subhead">Ведёте учёт с ${dateLong(c.first)} ${parse(c.first).getFullYear()}</span>
     </div>

@@ -93,7 +93,7 @@ async function push() {
   }
   if (q.profileAt) {
     const at = q.profileAt, s = store.s;
-    const { error } = await supabase.from('profiles').upsert({ user_id: userId, name: s.profile.name, color: s.profile.color, showcase: s.profile.showcase || [], settings: s.settings, meta: { ...s.meta, demo: false }, updated_at: ts(at) }, { onConflict: 'user_id' });
+    const { error } = await supabase.from('profiles').upsert({ user_id: userId, name: s.profile.name, color: s.profile.color, showcase: s.profile.showcase || [], settings: s.settings, meta: { ...s.meta, demo: false, photo: s.profile.photo || null }, updated_at: ts(at) }, { onConflict: 'user_id' });
     if (error) throw error;
     if (q.profileAt === at) q.profileAt = 0;
   }
@@ -130,9 +130,11 @@ async function pull() {
     // награды не теряем: берём максимум с обеих сторон
     const ach = { ...(prof.meta?.ach || {}) };
     for (const [id, v] of Object.entries(s.meta.ach || {})) { const r = ach[id]; ach[id] = !r ? v : { tier: Math.max(r.tier || 0, v.tier || 0), count: Math.max(r.count || 0, v.count || 0), at: Math.min(r.at || Infinity, v.at || Infinity) }; }
-    patch.profile = { ...s.profile, name: prof.name ?? s.profile.name, color: prof.color ?? s.profile.color, showcase: prof.showcase ?? s.profile.showcase };
+    // фото профиля лежит в meta на сервере, а у нас — в profile
+    const { photo, ...pm } = prof.meta || {};
+    patch.profile = { ...s.profile, name: prof.name ?? s.profile.name, color: prof.color ?? s.profile.color, showcase: prof.showcase ?? s.profile.showcase, photo: photo === undefined ? s.profile.photo : photo };
     patch.settings = { ...s.settings, ...(prof.settings || {}) };
-    patch.meta = { ...s.meta, ...(prof.meta || {}), ach, onboarded: true, demo: false };
+    patch.meta = { ...s.meta, ...pm, ach, onboarded: true, demo: false };
     q.profilePulledAt = prof.updated_at;
   }
   if (Object.keys(patch).length) store.set(patch, { fromSync: true });

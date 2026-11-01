@@ -1,7 +1,8 @@
 import { html } from 'htm/preact';
+import { UserAvatar } from '../components/UserAvatar.js';
 import { useRef, useState, useEffect } from 'preact/hooks';
 import { Icon, Sq, Chevron, Switch, Page, Select } from '@grosh/ui-kit';
-import { TODAY, dateLong, initials, iso } from '../lib/dates.js';
+import { TODAY, dateLong, iso } from '../lib/dates.js';
 import { catOf, mutate, store, ui } from '../state/store.js';
 import { askImport, download } from '../lib/backup.js';
 import { makeDemo } from '../lib/seed.js';
@@ -59,7 +60,7 @@ export function Settings({ s, onClose }) {
   const setMs = d => mutate(st => ({ settings: { ...st.settings, monthStart: Math.min(28, Math.max(1, st.settings.monthStart + d)) } }));
   return html`<${Page} title="Настройки" onClose=${onClose}>
     <div class="group"><button class="cell" onClick=${() => ui.page('profile')} style="min-height:76px">
-      <span class="avatar avatar--lg" style=${`--c:var(--${s.profile.color})`}>${initials(s.profile.name) || html`<${Icon} n=\"person\" fill />`}</span>
+      <${UserAvatar} p=${s.profile} size="lg" />
       <span class="cell__main"><span class="t-title3">${s.profile.name}</span><span class="cell__sub">${acc ? (acc.email || 'Вход через ' + acc.provider) : 'Профиль и витрина наград'}</span></span><${Chevron} />
     </button></div>
     ${acc ? html`<div class="section"><div class="section__header">Аккаунт</div><div class="group">

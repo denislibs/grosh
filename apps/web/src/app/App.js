@@ -1,9 +1,10 @@
 import { html } from 'htm/preact';
 import { useState, useEffect, useRef, useMemo } from 'preact/hooks';
-import { Icon, Sheet, Dialog, Island } from '@grosh/ui-kit';
+import { Icon, Sheet, Dialog, Island, Spinner } from '@grosh/ui-kit';
 import { evaluate } from './lib/achievements.js';
 import { makeEmpty } from './lib/seed.js';
 import { supabase } from './lib/supabase.js';
+import { googlePhoto } from './lib/image.js';
 import { buzz, store, ui, useStore } from './state/store.js';
 import { startSync, stopSync, syncState } from './state/sync.js';
 import { AppContext } from './state/AppContext.js';
@@ -52,7 +53,8 @@ function useAuthSession(openAuth) {
       const u = sess.user;
       if (store.s.profile.account?.id !== u.id) {
         const name = u.user_metadata?.name || u.user_metadata?.full_name || '';
-        store.set(st => ({ profile: { ...st.profile, name: st.profile.name || name, account: { id: u.id, email: u.email, provider: u.app_metadata?.provider || 'email' } }, meta: { ...st.meta, onboarded: true } }));
+        const photo = googlePhoto(u.user_metadata?.avatar_url || u.user_metadata?.picture);
+        store.set(st => ({ profile: { ...st.profile, name: st.profile.name || name, photo: st.profile.photo || photo || null, account: { id: u.id, email: u.email, provider: u.app_metadata?.provider || 'email' } }, meta: { ...st.meta, onboarded: true } }));
       }
       // '1' — перенести данные с устройства, '0' — взять из аккаунта; пример данных по умолчанию не переносим
       const pending = localStorage.getItem('grosh.migrate');
@@ -104,7 +106,10 @@ export function App() {
   // онбординг — новому аккаунту после первой синхронизации, чтобы не показать его тому, у кого записи уже на сервере
   const [forceSetup, setForceSetup] = useState(false);
   if (import.meta.env.DEV) ui.setup = () => setForceSetup(true); // посмотреть онбординг без нового аккаунта
-  const needSetup = forceSetup || (!!session && !!sync.lastAt && !s.meta.setupDone && !s.tx.some(t => !t.deletedAt));
+  const fresh = !!session && !s.meta.setupDone && !s.tx.some(t => !t.deletedAt);
+  // пока первая синхронизация не ответила, неизвестно — новый это аккаунт или данные уже на сервере
+  const checking = fresh && !sync.lastAt && sync.status !== 'error' && sync.status !== 'offline';
+  const needSetup = forceSetup || (fresh && !!sync.lastAt);
 
   ui.sheet = v => { setSheetOut(false); setSheet(v); };
   ui.page = p => setPages(ps => [...ps.filter(x => x !== p), p]);
@@ -146,9 +151,12 @@ export function App() {
   };
   const ctx = { s, c, res, ui, session, sync };
   // пока нет входа — только страница входа, приложение под ней не рисуем
-  if (mustSignIn || !ready) return html`<${AppContext.Provider} value=${ctx}>
+  if (mustSignIn || !ready || checking) return html`<${AppContext.Provider} value=${ctx}>
     <div class="app">
       ${mustSignIn && html`<${Auth} start=${auth || 'welcome'} required onClose=${() => setAuth(null)} />`}
+      ${!mustSignIn && checking && html`<div class="auth auth--page splash" role="main" aria-busy="true">
+        <div class="app-icon"><${Icon} n="savings" /></div><${Spinner} /><p>Загружаем ваши данные…</p>
+      </div>`}
       ${toast && html`<${Island} key=${toast.id} toast=${toast} onAction=${() => setToast(null)} />`}
     </div>
   <//>`;

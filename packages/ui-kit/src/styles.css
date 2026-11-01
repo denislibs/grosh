@@ -462,6 +462,8 @@ input:autofill { -webkit-text-fill-color: var(--label); caret-color: var(--label
 .avatar--sm { width: 28px; height: 28px; font-size: 12px; }
 .avatar--lg { width: 60px; height: 60px; font-size: 26px; }
 .avatar--xl { width: 96px; height: 96px; font-size: 40px; }
+.avatar--photo { overflow: hidden; background: var(--fill-3); }
+.avatar--photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .avatar-stack { display: flex; }
 .avatar-stack .avatar + .avatar { margin-left: -10px; box-shadow: 0 0 0 2px var(--bg-2); }
 

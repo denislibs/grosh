@@ -49,5 +49,6 @@ export function Badge({ icon, tier = 'gold', progress = 1, count = 0, size = 72,
   </div>`;
 }
 
-export const Avatar = ({ color = 'blue', size = '', children, onClick, label }) =>
-  html`<${onClick ? 'button' : 'span'} class=${'avatar' + (size ? ' avatar--' + size : '')} style=${`--c:var(--${color})`} onClick=${onClick} aria-label=${label}>${children}<//>`;
+/** Аватар: фото (src), а если его нет — инициалы или иконка на цвете. */
+export const Avatar = ({ color = 'blue', size = '', src, children, onClick, label }) =>
+  html`<${onClick ? 'button' : 'span'} class=${'avatar' + (size ? ' avatar--' + size : '') + (src ? ' avatar--photo' : '')} style=${`--c:var(--${color})`} onClick=${onClick} aria-label=${label}>${src ? html`<img src=${src} alt="" referrerpolicy="no-referrer" />` : children}<//>`;

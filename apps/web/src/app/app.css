@@ -205,7 +205,9 @@ html, body { height: 100%; }
   .onb__dots i { width: 22px; height: 4px; border-radius: 2px; background: var(--fill); transition: background-color var(--dur-2) var(--ease-out); }
   .onb__dots i.is-on { background: var(--tint); }
   .onb__skip { min-height: 32px; padding: 0 4px; }
-  .onb__avatar { display: grid; justify-items: center; margin: 4px 0 8px; }
+  .avatar-edit { display: grid; justify-items: center; gap: 6px; }
+  .avatar-edit__actions { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
+  .avatar-edit__actions .btn { min-height: 36px; padding: 0 10px; gap: 6px; }
   .onb__tick { color: var(--tint); font-size: 22px; }
   .onb__pin { display: grid; justify-items: center; margin-top: 8px; }
   .day-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding: 10px; border-radius: 10px; background: var(--bg-2); }
@@ -216,6 +218,8 @@ html, body { height: 100%; }
   .cat-chip .sq { width: 30px; height: 30px; border-radius: 50%; background: var(--fill-3); color: var(--label-3, var(--label-2)); transition: inherit; }
   .cat-chip[aria-pressed="true"] { color: var(--label); }
   .cat-chip[aria-pressed="true"] .sq { background: var(--c); color: #fff; }
+  .splash { display: grid; place-content: center; justify-items: center; gap: 16px; color: var(--label-2); font-size: var(--t-subhead); animation-delay: 150ms; }
+  .splash p { margin: 0; }
   .lock { position: absolute; inset: 0; z-index: 95; background: var(--bg); display: grid; place-items: center; overflow-y: auto; padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom)); animation: fade-in var(--dur-2) var(--ease-out) both; }
   .lock.is-closing { animation: fade-out 280ms var(--ease-out) both; }
   .lock__inner { display: grid; justify-items: center; gap: 8px; }
