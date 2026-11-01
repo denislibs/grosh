@@ -1,0 +1,16 @@
+{
+  "name": "grosh-monorepo",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*", "apps/*"],
+  "scripts": {
+    "dev": "npm run dev -w grosh-web",
+    "build": "npm run build -w @grosh/ui-kit && npm run build -w grosh-web",
+    "preview": "npm run preview -w grosh-web",
+    "test": "vitest run",
+    "icons": "node scripts/icons.mjs"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.5"
+  }
+}

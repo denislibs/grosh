@@ -1,0 +1,1770 @@
+<!doctype html>
+<html lang="ru">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Грош</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#F2F2F7">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,400..600,0..1,0&icon_names=account_balance,account_balance_wallet,add,add_circle,adjust,animation,auto_awesome,autorenew,backspace,backup,bar_chart,bedtime,calculate,calendar_month,cancel,category,celebration,check,check_circle,checkroom,chevron_left,chevron_right,child_care,close,cloud_sync,content_copy,content_cut,contrast,credit_card,delete,diamond,directions_bus,directions_walk,do_not_disturb_on,download,edit_calendar,emoji_events,error,event,event_available,fitness_center,flag,flight,help,history,home,hub,laptop_mac,lightbulb,local_bar,local_cafe,local_fire_department,local_gas_station,local_taxi,lock,logout,mail,mark_email_read,medication,menu_book,military_tech,more_horiz,movie,music_note,north_east,percent,person,pets,radio_button_unchecked,receipt_long,redeem,remove,restaurant,savings,school,search,self_improvement,settings,shield,shopping_cart,smartphone,south_west,sports_esports,sync,table_view,task_alt,trending_down,trending_up,unfold_more,upload,vibration,visibility,visibility_off,work&display=block">
+<link rel="stylesheet" href="ds.css">
+<style>
+  html, body { height: 100%; }
+  body { overflow: hidden; }
+  #root { height: 100%; }
+  /* приложение прибито к видимой области: низ с таб-баром не уезжает под панели браузера */
+  .app { position: fixed; inset: 0; height: auto; }
+  .boot { height: 100%; display: grid; place-items: center; color: var(--label-2); }
+
+  .screen { position: absolute; inset: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); animation: fade-in var(--dur-3) var(--ease-out) both; }
+  .inner { max-width: 600px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start; }
+  .inner .large-title { padding: calc(52px + env(safe-area-inset-top, 0px)) 0 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: -12px; }
+  .col { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start; min-width: 0; }
+  .split { display: grid; grid-template-columns: minmax(0, 1fr); gap: 28px; align-content: start; }
+
+
+  .hero { display: grid; gap: 2px; padding: 0 4px; }
+  .hero__v { font-family: var(--font-rounded); font-size: 48px; font-weight: 700; letter-spacing: -.5px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .hero__v small { font-size: 28px; color: var(--label-2); font-weight: 600; margin-left: 4px; }
+
+  .chal { display: grid; gap: 8px; flex: 1; min-width: 0; }
+  .chal__row { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .chal__state { font-size: var(--t-footnote); letter-spacing: -.08px; }
+
+  .cell-wrap { position: relative; overflow: hidden; display: grid; grid-template-rows: 1fr; transition: grid-template-rows var(--dur-3) var(--ease-ios), opacity var(--dur-3); }
+  .cell-wrap > div { min-height: 0; position: relative; overflow: hidden; }
+  .cell-wrap.is-gone { grid-template-rows: 0fr; opacity: 0; }
+  .swipe-del { position: absolute; inset: 0; display: flex; align-items: center; justify-content: flex-end; padding-right: 20px; background: var(--red); color: #fff; font-weight: 500; opacity: 0; }
+  .cell-wrap.is-drag .swipe-del { opacity: 1; }
+  .cell-wrap .cell { touch-action: pan-y; }
+  .more { color: var(--tint); justify-content: center; }
+
+  /* шторка операции */
+  .tx { --accent: var(--red); display: flex; flex-direction: column; gap: 14px; min-height: 100%; }
+  .tx--income { --accent: var(--green); }
+  .amount { text-align: center; padding: 4px 0; }
+  .amount__expr { font-size: var(--t-subhead); color: var(--label-2); min-height: 20px; font-variant-numeric: tabular-nums; }
+  .amount__val { font-family: var(--font-rounded); font-weight: 700; font-size: 52px; letter-spacing: -.5px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .amount__val .cur { color: var(--label-3); font-size: 34px; margin-left: 4px; }
+  .tx--income .amount__val { color: var(--green); }
+  .amount.is-shake { animation: shake 400ms var(--ease-ios); }
+  .picks { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px 4px; }
+  .pick { display: grid; justify-items: center; gap: 5px; font-size: var(--t-caption1); letter-spacing: 0; color: var(--label-2); min-width: 0; }
+  .pick span:last-child { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .pick .sq { transition: outline-color var(--dur-2); outline: 2.5px solid transparent; outline-offset: 2px; }
+  .pick[aria-pressed="true"] { color: var(--label); font-weight: 600; }
+  .pick[aria-pressed="true"] .sq { outline-color: var(--c); }
+  .row-scroll { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .row-scroll::-webkit-scrollbar { display: none; }
+  .sheet__body:has(> .tx) { display: flex; flex-direction: column; }
+  .sheet__body > .tx { flex: 1; min-height: auto; }
+  .date-cap { position: relative; }
+  .date-cap input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+  .tx .pad { margin-top: auto; }
+
+  /* календарь */
+  .cal-card { padding: 12px 8px 8px; }
+  .cal-head { display: flex; align-items: center; gap: 4px; padding: 0 8px 12px; }
+  .cal-head b { flex: 1; font-size: var(--t-title3); font-weight: 600; letter-spacing: .38px; }
+  .cal-head b span { text-transform: capitalize; }
+  .cal-anim-l { animation: slide-l var(--dur-4) var(--ease-ios) both; }
+  .cal-anim-r { animation: slide-r var(--dur-4) var(--ease-ios) both; }
+  @keyframes slide-l { from { transform: translateX(32px); opacity: 0; } }
+  @keyframes slide-r { from { transform: translateX(-32px); opacity: 0; } }
+  .cal-wrap { touch-action: pan-y; overflow: hidden; }
+  .cal-sum { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 10px 16px 2px; font-size: var(--t-footnote); color: var(--label-2); border-top: var(--hair) solid var(--sep); margin: 8px -8px 0; }
+  .cal-sum b { font-weight: 600; color: var(--label); font-variant-numeric: tabular-nums; }
+
+  /* статистика */
+  .period { display: flex; align-items: center; gap: 8px; }
+  .period b { flex: 1; text-align: center; font-weight: 600; }
+  .metric__label { font-size: var(--t-footnote); color: var(--label-2); text-transform: uppercase; letter-spacing: -.08px; }
+  .metric__v { font-family: var(--font-rounded); font-size: 34px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .metric__v small { font-size: 20px; color: var(--label-2); margin-left: 3px; font-weight: 600; }
+  .metric__sub { font-size: var(--t-subhead); color: var(--label-2); }
+  .chart { position: relative; height: 170px; display: flex; align-items: flex-end; gap: 3px; padding-right: 40px; }
+  .chart__grid { position: absolute; left: 0; right: 0; border-top: var(--hair) solid var(--sep); pointer-events: none; }
+  .chart__grid span { position: absolute; right: 0; top: -7px; font-size: var(--t-caption2); color: var(--label-2); font-variant-numeric: tabular-nums; }
+  .chart__avg { position: absolute; left: 0; right: 40px; border-top: 1px dashed var(--c); pointer-events: none; opacity: .7; }
+  .bar { flex: 1; min-width: 0; height: 100%; display: flex; align-items: flex-end; position: relative; z-index: 1; }
+  .bar i { display: block; width: 100%; height: calc(var(--h) * 100%); min-height: 1px; border-radius: 3px 3px 1px 1px; background: var(--c); transform-origin: bottom; animation: grow-y var(--dur-4) var(--ease-ios) both; animation-delay: calc(var(--i) * 12ms); transition: opacity var(--dur-2); }
+  .chart.has-sel .bar:not(.is-sel) i { opacity: .35; }
+  .bar.is-future i { background: var(--fill-3); }
+  .chart__labels { display: flex; gap: 3px; padding-right: 40px; font-size: var(--t-caption2); color: var(--label-2); font-variant-numeric: tabular-nums; }
+  .chart__labels span { flex: 1; min-width: 0; text-align: center; overflow: visible; white-space: nowrap; }
+  .stackbar { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; background: var(--fill-3); }
+  .stackbar i { display: block; height: 100%; background: var(--c); width: calc(var(--p) * 100%); transform-origin: left; animation: grow-x var(--dur-4) var(--ease-ios) both; animation-delay: calc(var(--i) * 60ms); transition: opacity var(--dur-2); }
+  .stackbar.has-sel i:not(.is-sel) { opacity: .3; }
+  .legend .cell.is-dim { opacity: .4; }
+  .delta-good { color: var(--green); }
+  .delta-bad { color: var(--red); }
+
+  /* награды */
+  .award-sum { display: flex; align-items: center; gap: 18px; }
+  .big-ring { width: 96px; height: 96px; flex: none; position: relative; }
+  .big-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .big-ring circle { fill: none; stroke-width: 12; }
+  .big-ring b { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; font-family: var(--font-rounded); font-size: 24px; line-height: 1; }
+  .big-ring b small { font-family: var(--font); font-size: 11px; font-weight: 500; color: var(--label-2); margin-top: 3px; }
+  .badges { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px 8px; padding: 18px 8px; }
+  .badge-cell { display: grid; justify-items: center; align-content: start; gap: 6px; text-align: center; min-width: 0; transition: transform var(--dur-2) var(--ease-spring); }
+  .badge-cell:active { transform: scale(.94); }
+  .badge-cell b { font-size: var(--t-footnote); font-weight: 600; line-height: 1.2; letter-spacing: -.08px; }
+  .badge-cell small { font-size: var(--t-caption1); color: var(--label-2); line-height: 1.2; letter-spacing: 0; }
+  .ach-hero { display: grid; justify-items: center; gap: 8px; text-align: center; perspective: 800px; padding: 8px 0 4px; }
+  .ach-hero .badge { animation: badge-in 1s var(--ease-out) both; }
+
+  /* страницы (push-навигация) */
+  .page { position: absolute; inset: 0; z-index: 35; background: var(--bg); overflow-y: auto; padding-bottom: 60px; animation: push-in var(--dur-4) var(--ease-ios) both; }
+  .page.is-closing { animation: push-out var(--dur-3) var(--ease-ios) both; }
+  @keyframes push-in { from { transform: translateX(100%); } }
+  @keyframes push-out { to { transform: translateX(100%); } }
+  .back { display: inline-flex; align-items: center; color: var(--tint); margin-left: -10px; }
+  .back .ms { font-size: 32px; width: auto; }
+  .cell .seg { width: 176px; flex: 0 1 auto; min-width: 0; }
+  .cell__main { overflow-wrap: anywhere; }
+  .profile-head { display: grid; justify-items: center; gap: 10px; text-align: center; padding-top: 8px; }
+  .name-input { font-size: var(--t-title1); font-weight: 700; text-align: center; border: 0; background: transparent; width: 100%; max-width: 320px; padding: 2px 8px; border-radius: 8px; letter-spacing: .36px; }
+  .name-input:focus { outline: none; background: var(--fill-4); }
+  .showcase { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 16px 8px; gap: 8px; }
+  .slot { display: grid; justify-items: center; align-content: start; gap: 6px; font-size: var(--t-footnote); text-align: center; min-width: 0; }
+  .slot--empty { color: var(--tint); }
+  .slot--empty .ring-empty { width: 64px; height: 64px; border-radius: 50%; border: 1.5px dashed var(--label-3); display: grid; place-items: center; }
+  .code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0; background: var(--bg-2); border-radius: var(--r-group); padding: 12px 16px; max-height: 160px; overflow: auto; white-space: pre; color: var(--label-2); }
+
+  /* итоги месяца */
+  .recap { position: absolute; inset: 0; z-index: 80; display: grid; place-items: center; background: #000; animation: fade-in var(--dur-3) var(--ease-out) both; }
+  .story { --c: var(--indigo); position: relative; width: 100%; height: 100%; overflow: hidden; color: #fff; background: var(--c); transition: background var(--dur-4) var(--ease-ios); user-select: none; }
+  .story--orange { --c: var(--orange); } .story--pink { --c: var(--pink); } .story--green { --c: var(--green); } .story--teal { --c: var(--teal); } .story--indigo { --c: var(--indigo); }
+  .story__bars { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 10px); left: 12px; right: 12px; display: flex; gap: 4px; z-index: 3; }
+  .story__bars span { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, .35); overflow: hidden; }
+  .story__bars i { display: block; height: 100%; background: #fff; width: 0; }
+  .story__bars .is-done i { width: 100%; }
+  .story__bars .is-cur i { animation: story-fill 6s linear forwards; }
+  .story.is-paused .story__bars .is-cur i { animation-play-state: paused; }
+  @keyframes story-fill { to { width: 100%; } }
+  .story__close { position: absolute; top: calc(env(safe-area-inset-top, 0px) + 22px); right: 12px; z-index: 4; color: #fff; background: rgba(255, 255, 255, .22); }
+  .story__tap { position: absolute; inset: 0; z-index: 2; display: grid; grid-template-columns: 1fr 2fr; }
+  .story__body { position: absolute; inset: 0; z-index: 1; padding: 80px 28px 48px; display: flex; flex-direction: column; justify-content: center; gap: 14px; }
+  .story__body > * { animation: rise 600ms var(--ease-out) both; animation-delay: calc(var(--i, 0) * 110ms + 80ms); }
+  .story__eyebrow { font-size: var(--t-footnote); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; opacity: .85; }
+  .story__big { font-family: var(--font-rounded); font-weight: 700; font-size: clamp(40px, 12vw, 58px); line-height: 1; letter-spacing: -.5px; font-variant-numeric: tabular-nums; }
+  .story__title { font-family: var(--font-rounded); font-weight: 700; font-size: clamp(52px, 16vw, 80px); line-height: .95; letter-spacing: -1px; text-transform: capitalize; }
+  .story__title span { display: inline-block; animation: letter 700ms var(--ease-spring) both; animation-delay: calc(var(--l) * 40ms + 200ms); }
+  @keyframes letter { from { transform: translateY(50%); opacity: 0; } }
+  .story__txt { font-size: var(--t-title3); font-weight: 500; line-height: 1.3; letter-spacing: .38px; max-width: 26ch; }
+  .story__txt b { font-weight: 700; }
+  .story__icon { width: 88px; height: 88px; border-radius: 22px; background: rgba(255, 255, 255, .22); display: grid; place-items: center; }
+  .story__icon .ms { font-size: 54px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 48; }
+  .story__rows { display: grid; gap: 12px; }
+  .story__row { display: grid; gap: 6px; font-size: var(--t-body); }
+  .story__row > div:first-child { display: flex; justify-content: space-between; gap: 8px; }
+  .story__row .progress { background: rgba(255, 255, 255, .25); height: 6px; border-radius: 3px; }
+  .story__row .progress i { background: #fff; }
+  .story__cmp { display: flex; align-items: flex-end; gap: 16px; height: 190px; }
+  .story__cmp > div { flex: 1; display: grid; gap: 8px; align-content: end; height: 100%; text-align: center; font-size: var(--t-subhead); }
+  .story__cmp i { display: block; border-radius: 10px 10px 4px 4px; background: #fff; height: calc(var(--h) * 140px); transform-origin: bottom; animation: grow-y 900ms var(--ease-spring) both; animation-delay: var(--d); }
+  .story__cmp > div:first-child i { background: rgba(255, 255, 255, .4); }
+  .story__badges { display: flex; flex-wrap: wrap; gap: 16px; }
+  .story__badges .badge { --c: #fff; }
+  .story__badges .badge__core { background: rgba(255, 255, 255, .25); }
+  .story__badges .badge__track { stroke: rgba(255, 255, 255, .25); }
+  .story__badges > div { animation: badge-in 900ms var(--ease-out) both; animation-delay: calc(var(--i) * 120ms + 300ms); }
+  .story__road { position: relative; height: 56px; border-bottom: 2px dashed rgba(255, 255, 255, .45); overflow: hidden; }
+  .story__road .ms { position: absolute; bottom: 4px; left: 0; font-size: 44px; width: auto; animation: drive 3s var(--ease-ios) .4s both; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 48; }
+  @keyframes drive { from { transform: translateX(-60px); } to { transform: translateX(min(380px, 80vw)); } }
+  .story .btn { position: relative; z-index: 3; background: #fff; color: var(--c); align-self: flex-start; }
+
+  /* новая награда */
+  .unlock { position: absolute; inset: 0; z-index: 90; display: grid; place-items: center; background: var(--scrim); animation: fade-in var(--dur-3) var(--ease-out) both; perspective: 900px; }
+  .unlock.is-closing { animation: fade-out var(--dur-3) var(--ease-ios) both; }
+  .unlock__card { position: relative; overflow: hidden; display: grid; justify-items: center; gap: 8px; text-align: center; width: min(340px, calc(100% - 40px)); padding: 32px 20px 20px; border-radius: 22px; background: var(--bg-2); animation: alert-in 560ms var(--ease-spring) both; }
+  @keyframes alert-in { from { transform: scale(1.15); opacity: 0; } }
+  .unlock .badge { animation: badge-in 1.1s var(--ease-out) both; margin-bottom: 8px; }
+  .unlock p { color: var(--label-2); font-size: var(--t-subhead); letter-spacing: -.24px; max-width: 28ch; }
+  .unlock canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+  .unlock__taxi { position: absolute; left: 0; top: 100px; z-index: 1; color: var(--yellow); font-size: 40px; width: auto; animation: drive 2.4s var(--ease-ios) .5s both; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 48; }
+
+  /* вход и регистрация */
+  .auth { position: absolute; inset: 0; z-index: 85; background: var(--bg); overflow-y: auto; animation: sheet-in var(--dur-4) var(--ease-ios) both; }
+  .auth.is-closing { animation: sheet-out var(--dur-3) var(--ease-ios) both; }
+  .auth__inner { position: relative; max-width: 440px; min-height: 100%; margin: 0 auto; padding: calc(60px + env(safe-area-inset-top, 0px)) max(20px, env(safe-area-inset-left, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; }
+  .auth__top { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 12px; right: 12px; display: flex; justify-content: space-between; align-items: center; }
+  .auth__step { flex: 1; display: flex; flex-direction: column; gap: 18px; animation: auth-in var(--dur-4) var(--ease-ios) both; }
+  .auth__step.is-back { animation-name: auth-back; }
+  @keyframes auth-in { from { transform: translateX(40px); opacity: 0; } }
+  @keyframes auth-back { from { transform: translateX(-40px); opacity: 0; } }
+  .auth__hero { display: grid; justify-items: center; gap: 10px; text-align: center; padding-top: 12px; }
+  .auth__hero p { color: var(--label-2); max-width: 30ch; }
+  .app-icon { width: 88px; height: 88px; border-radius: 20px; background: var(--tint); color: #fff; display: grid; place-items: center; animation: alert-pop 600ms var(--ease-spring) both; }
+  .app-icon .ms { font-size: 54px; font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 48; }
+  .auth__head { display: grid; gap: 6px; }
+  .auth__head p { color: var(--label-2); }
+  .auth__fields { display: grid; gap: 12px; }
+  .auth__fields.is-shake { animation: shake 400ms var(--ease-ios); }
+  .auth__actions { display: grid; gap: 10px; margin-top: auto; padding-top: 8px; }
+  .auth__or { display: flex; align-items: center; gap: 12px; color: var(--label-2); font-size: var(--t-footnote); }
+  .auth__or::before, .auth__or::after { content: ""; flex: 1; border-top: var(--hair) solid var(--sep); }
+  .auth__foot { text-align: center; font-size: var(--t-subhead); color: var(--label-2); letter-spacing: -.24px; }
+  .auth__note { text-align: center; font-size: var(--t-caption1); color: var(--label-3); letter-spacing: 0; }
+  .link { color: var(--tint); font: inherit; }
+  .btn--apple { background: var(--label); color: var(--bg-2); }
+  .btn--filled .spinner i, .btn--apple .spinner i { background: currentColor; }
+  .strength { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 8px 16px 0; }
+  .strength i { height: 4px; border-radius: 2px; background: var(--fill-3); transition: background var(--dur-3); }
+  .strength i.on { background: var(--c); }
+  .pw-toggle { color: var(--label-3); display: grid; place-items: center; width: 30px; height: 30px; }
+  .action-sheet__group > :first-child { border-top: 0; }
+
+  /* десктоп */
+  @container app (min-width: 900px) {
+    .auth { background: var(--scrim); display: grid; place-items: center; padding: 24px; animation: fade-in var(--dur-3) var(--ease-out) both; }
+    .auth.is-closing { animation: fade-out var(--dur-3) var(--ease-ios) both; }
+    .auth__inner { width: 440px; min-height: 0; max-height: 100%; overflow-y: auto; padding: 56px 32px 24px; background: var(--bg); border-radius: 14px; animation: modal-pop var(--dur-4) var(--ease-ios) both; }
+    @keyframes modal-pop { from { transform: scale(1.06); opacity: 0; } }
+    .screen { padding: 0 0 48px 260px; }
+    .page { left: 260px; }
+    .inner { max-width: 1040px; padding: 0 40px; }
+    .split { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+    .split--wide { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+    .badges { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .chart { height: 220px; }
+    .story { width: 400px; height: min(780px, calc(100% - 48px)); border-radius: 22px; }
+    .recap { background: rgba(0, 0, 0, .85); }
+  }
+</style>
+
+<div id="root"><div class="boot">Загружаем…</div></div>
+
+<script src="https://cdn.jsdelivr.net/npm/htm@3.1.1/preact/standalone.umd.js"></script>
+<script>
+const { html, render, useState, useEffect, useRef, useMemo } = htmPreact;
+
+/* ================= даты и формат ================= */
+const pad2 = n => String(n).padStart(2, '0');
+const iso = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const diffDays = (a, b) => Math.round((parse(b) - parse(a)) / 864e5);
+const NOW = new Date();
+const TODAY = iso(NOW);
+const YESTERDAY = iso(addDays(NOW, -1));
+const nf = new Intl.NumberFormat('ru-RU');
+const fmt = n => nf.format(Math.round(n));
+const money = n => fmt(n) + ' ₸';
+const kfmt = n => n >= 1e6 ? (n / 1e6).toFixed(1).replace('.', ',') + 'м' : n >= 1000 ? Math.round(n / 1000) + 'к' : String(Math.round(n));
+const M_NOM = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const M_GEN = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+const M_PREP = ['январе','феврале','марте','апреле','мае','июне','июле','августе','сентябре','октябре','ноябре','декабре'];
+const M_INS = ['январём','февралём','мартом','апрелем','маем','июнем','июлем','августом','сентябрём','октябрём','ноябрём','декабрём'];
+const WD = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+const WD_LONG = ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'];
+const cap = s => s[0].toUpperCase() + s.slice(1);
+const dateLong = s => `${parse(s).getDate()} ${M_GEN[parse(s).getMonth()]}`;
+const dayTitle = s => s === TODAY ? 'Сегодня' : s === YESTERDAY ? 'Вчера' : `${dateLong(s)}, ${WD_LONG[parse(s).getDay()]}`;
+const plural = (n, a, b, c) => { n = Math.abs(n) % 100; const n1 = n % 10; return n > 10 && n < 20 ? c : n1 > 1 && n1 < 5 ? b : n1 === 1 ? a : c; };
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2));
+const initials = name => (name || '?').trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+// «финансовый месяц» может начинаться не с 1-го числа
+const pKey = (s, ms) => { const d = parse(s); let y = d.getFullYear(), m = d.getMonth(); if (d.getDate() < ms) { m--; if (m < 0) { m = 11; y--; } } return y * 12 + m; };
+const pRange = (k, ms) => { const y = Math.floor(k / 12), m = k % 12; return [iso(new Date(y, m, ms)), iso(addDays(new Date(y, m + 1, ms), -1))]; };
+
+/* ================= категории и демо-данные ================= */
+const CATS = [
+  ['food', 'expense', 'Продукты', 'shopping_cart', 'orange'],
+  ['cafe', 'expense', 'Кафе', 'local_cafe', 'brown'],
+  ['taxi', 'expense', 'Такси', 'local_taxi', 'yellow'],
+  ['transport', 'expense', 'Транспорт', 'directions_bus', 'blue'],
+  ['home', 'expense', 'Дом', 'home', 'indigo'],
+  ['health', 'expense', 'Здоровье', 'medication', 'pink'],
+  ['fun', 'expense', 'Развлечения', 'movie', 'mint'],
+  ['clothes', 'expense', 'Одежда', 'checkroom', 'teal'],
+  ['subs', 'expense', 'Подписки', 'autorenew', 'cyan'],
+  ['phone', 'expense', 'Связь', 'smartphone', 'gray'],
+  ['gifts', 'expense', 'Подарки', 'redeem', 'red'],
+  ['loan', 'expense', 'Рассрочки', 'credit_card', 'purple'],
+  ['other', 'expense', 'Другое', 'more_horiz', 'gray'],
+  ['salary', 'income', 'Зарплата', 'work', 'green'],
+  ['freelance', 'income', 'Фриланс', 'laptop_mac', 'mint'],
+  ['cashback', 'income', 'Кэшбэк', 'percent', 'orange'],
+  ['gift_in', 'income', 'Подарки', 'redeem', 'red'],
+  ['interest', 'income', 'Проценты', 'percent', 'teal'],
+  ['other_in', 'income', 'Другое', 'more_horiz', 'gray'],
+  ['deposit', 'transfer', 'Депозит', 'account_balance', 'green'],
+].map(([id, type, name, icon, color], order) => ({ id, type, name, icon, color, order, archived: false }));
+const COLORS = ['red', 'orange', 'yellow', 'green', 'mint', 'teal', 'cyan', 'blue', 'indigo', 'purple', 'pink', 'brown', 'gray'];
+const ICONS = ['shopping_cart', 'local_cafe', 'local_taxi', 'directions_bus', 'home', 'medication', 'movie', 'checkroom', 'autorenew', 'smartphone', 'redeem', 'more_horiz', 'restaurant', 'local_bar', 'pets', 'sports_esports', 'menu_book', 'flight', 'local_gas_station', 'content_cut', 'fitness_center', 'music_note', 'lightbulb', 'work', 'laptop_mac', 'percent', 'savings', 'account_balance', 'school', 'child_care'];
+
+function rng(seed) { return () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+const NOTES = {
+  food: ['Продукты на неделю', 'Овощи и фрукты', 'Хлеб и молоко', 'Супермаркет у дома', 'Мясо на выходные'],
+  cafe: ['Кофе с собой', 'Обед с коллегами', 'Завтрак', 'Кофе и круассан', 'Ужин с друзьями'],
+  taxi: ['Домой из офиса', 'В офис, опаздывал', 'Из гостей', 'До торгового центра', 'В аэропорт'],
+  fun: ['Кино', 'Боулинг', 'Концерт', 'Новая игра'],
+  health: ['Аптека', 'Стоматолог', 'Анализы'],
+  clothes: ['Кроссовки', 'Куртка', 'Футболки'],
+  gifts: ['Подарок маме', 'День рождения друга'],
+  other: ['Стрижка', 'Химчистка', 'Канцелярия'],
+};
+function seedTx() {
+  const r = rng(11), out = [];
+  const between = (a, b, step = 50) => Math.round((a + r() * (b - a)) / step) * step;
+  const pick = arr => arr[Math.floor(r() * arr.length)];
+  const add = (date, type, cat, amount, note) => {
+    if (amount === 10000) amount = 10050; // «Перфекционист» оставляем на открытие вручную
+    const c = parse(date); c.setHours(8 + Math.floor(r() * 14), Math.floor(r() * 60));
+    out.push({ id: uid(), type, cat, amount, date, note, createdAt: c.getTime(), updatedAt: c.getTime(), deletedAt: null });
+  };
+  for (let i = 94; i >= 0; i--) {
+    const d = addDays(NOW, -i), s = iso(d), dom = d.getDate();
+    if (dom === 1) add(s, 'expense', 'home', 180000, 'Аренда квартиры');
+    if (dom === 5) add(s, 'income', 'salary', 720000, 'Зарплата');
+    if (dom === 20 && r() < .75) add(s, 'income', 'freelance', between(60000, 150000, 5000), 'Проект для клиента');
+    if (dom === 25) add(s, 'income', 'cashback', between(4000, 9000, 10), 'Кэшбэк за месяц');
+    if (dom === 12) add(s, 'expense', 'phone', 4500, 'Связь и интернет');
+    if (dom === 15) add(s, 'expense', 'subs', 2990, 'Музыка');
+    if (dom === 18) add(s, 'expense', 'subs', 1490, 'Облачное хранилище');
+    if (i === 0) { add(s, 'expense', 'cafe', 1600, 'Кофе с собой'); continue; }
+    if (r() < .08) continue; // день без трат
+    if (r() < .45) add(s, 'expense', 'food', between(3500, 16000), pick(NOTES.food));
+    if (r() < .35) add(s, 'expense', 'cafe', between(1800, 7500), pick(NOTES.cafe));
+    const taxiP = i > 60 ? .6 : i > 30 ? .4 : .15;
+    if (r() < taxiP) add(s, 'expense', 'taxi', between(900, 3800), pick(NOTES.taxi));
+    if (r() < taxiP * .35) add(s, 'expense', 'taxi', between(900, 3200), pick(NOTES.taxi));
+    if (r() < .2) add(s, 'expense', 'transport', r() < .5 ? 250 : 500, 'Автобус');
+    if (r() < .07) add(s, 'expense', 'fun', between(3000, 15000), pick(NOTES.fun));
+    if (r() < .05) add(s, 'expense', 'health', between(2000, 12000), pick(NOTES.health));
+    if (r() < .03) add(s, 'expense', 'clothes', between(9000, 35000, 500), pick(NOTES.clothes));
+    if (r() < .025) add(s, 'expense', 'gifts', between(5000, 20000, 500), pick(NOTES.gifts));
+    if (r() < .05) add(s, 'expense', 'other', between(1500, 6000), pick(NOTES.other));
+  }
+  return out;
+}
+
+/* ================= рассрочки и депозиты ================= */
+const addMonths = (s, n, day) => { const d = parse(s), y = d.getFullYear(), m = d.getMonth() + n; return iso(new Date(y, m, Math.min(day ?? d.getDate(), new Date(y, m + 1, 0).getDate()))); };
+const instSchedule = it => { const base = Math.round(it.total / it.months), day = parse(it.first).getDate(); return [...Array(it.months)].map((_, k) => ({ k, date: addMonths(it.first, k, day), amount: k === it.months - 1 ? it.total - base * (it.months - 1) : base })); };
+function instState(it, txs) {
+  const sch = instSchedule(it);
+  const paid = new Set(sch.filter(p => p.k < it.paidBefore || txs.some(t => t.inst === it.id && t.k === p.k && !t.deletedAt)).map(p => p.k));
+  const next = sch.find(p => !paid.has(p.k));
+  const left = sch.filter(p => !paid.has(p.k)).reduce((a, p) => a + p.amount, 0);
+  return { sch, paid, paidN: paid.size, next, left, done: paid.size === it.months, monthly: Math.round(it.total / it.months) };
+}
+// платёж по рассрочке списывается сам в день оплаты; удалённый вручную больше не создаётся
+function instDue(s) {
+  const out = [];
+  for (const it of s.installments || []) for (const p of instSchedule(it)) {
+    if (p.k < it.paidBefore || p.date > TODAY || s.tx.some(t => t.inst === it.id && t.k === p.k)) continue;
+    const c = parse(p.date); c.setHours(9, 0);
+    out.push({ id: uid(), type: 'expense', cat: 'loan', amount: p.amount, date: p.date, note: `${it.name} · ${p.k + 1} из ${it.months}`, inst: it.id, k: p.k, createdAt: c.getTime(), updatedAt: c.getTime(), deletedAt: null });
+  }
+  return out;
+}
+// проценты начисляются каждый день, при капитализации раз в месяц прибавляются к телу
+function depState(dp, txs, until = TODAY) {
+  const ops = txs.filter(t => t.dep === dp.id && t.type === 'transfer' && !t.deletedAt).sort((a, b) => a.date.localeCompare(b.date));
+  const end = dp.closedAt ? iso(new Date(dp.closedAt)) : until;
+  const startDay = parse(dp.start).getDate();
+  let bal = 0, pend = 0, interest = 0, put = 0, i = 0;
+  for (let d = parse(dp.start); iso(d) <= end; d = addDays(d, 1)) {
+    const ds = iso(d);
+    while (i < ops.length && ops[i].date <= ds) { bal += ops[i].amount; put += ops[i].amount; i++; }
+    const day = Math.max(0, bal) * dp.rate / 100 / 365;
+    pend += day; interest += day;
+    const nd = addDays(d, 1);
+    if (dp.cap && nd.getDate() === Math.min(startDay, new Date(nd.getFullYear(), nd.getMonth() + 1, 0).getDate())) { bal += pend; pend = 0; }
+  }
+  return { bal: bal + pend, put, interest, ops };
+}
+// ГЭСВ (эффективная) ↔ номинальная: при ежемесячной капитализации эфф = (1 + ном/12)^12 − 1
+const effFromNom = (n, cap) => cap ? (Math.pow(1 + n / 1200, 12) - 1) * 100 : n;
+const nomFromEff = (e, cap) => cap ? 12 * (Math.pow(1 + e / 100, 1 / 12) - 1) * 100 : e;
+const parseRate = v => +String(v).replace(',', '.').replace(/[^\d.]/g, '') || 0;
+const fmtRate = n => String(Math.round(n * 100) / 100).replace('.', ',');
+const syncRate = (r, cap) => r.anchor === 'eff' ? { ...r, nom: fmtRate(nomFromEff(parseRate(r.eff), cap)) } : { ...r, eff: fmtRate(effFromNom(parseRate(r.nom), cap)) };
+const mkTransfer = (dep, amount, note, date = TODAY) => { const c = parse(date); if (date === TODAY) c.setTime(Date.now()); else c.setHours(10, 0); return { id: uid(), type: 'transfer', cat: 'deposit', dep, amount, date, note, createdAt: c.getTime(), updatedAt: c.getTime(), deletedAt: null }; };
+
+/* ================= ачивки ================= */
+function buildCtx(s) {
+  const ms = s.settings.monthStart;
+  const txs = s.tx.filter(t => !t.deletedAt);
+  const days = new Map(), per = new Map();
+  let inc = 0, exp = 0, tr = 0;
+  for (const t of txs) {
+    let d = days.get(t.date); if (!d) { d = { exp: 0, inc: 0, n: 0, taxi: 0 }; days.set(t.date, d); }
+    d.n++;
+    const k = pKey(t.date, ms);
+    let p = per.get(k); if (!p) { p = { exp: 0, inc: 0, byCat: {}, incCats: new Set(), wd: [0, 0, 0, 0, 0, 0, 0], n: 0 }; per.set(k, p); }
+    p.n++;
+    if (t.type === 'expense') {
+      d.exp += t.amount; p.exp += t.amount; exp += t.amount;
+      p.byCat[t.cat] = (p.byCat[t.cat] || 0) + t.amount;
+      p.wd[parse(t.date).getDay()] += t.amount;
+      if (t.cat === 'taxi') d.taxi += t.amount;
+    } else if (t.type === 'income') { d.inc += t.amount; p.inc += t.amount; inc += t.amount; p.incCats.add(t.cat); }
+    else if (t.type === 'transfer') { tr += t.amount; p.tr = (p.tr || 0) + t.amount; }
+  }
+  const first = txs.reduce((m, t) => (t.date < m ? t.date : m), TODAY);
+  const cur = pKey(TODAY, ms);
+  const done = [...per.keys()].filter(k => k < cur).sort((a, b) => a - b);
+  return { s, ms, txs, days, per, first, cur, done, inc, exp, tr };
+}
+function runs(c, pred, until = TODAY) {
+  let best = 0, cur = 0;
+  for (let d = parse(c.first); iso(d) <= until; d = addDays(d, 1)) { if (pred(iso(d))) { cur++; best = Math.max(best, cur); } else cur = 0; }
+  return { best, cur };
+}
+const streakNow = c => c.days.has(TODAY) ? runs(c, s => c.days.has(s)).cur : runs(c, s => c.days.has(s), YESTERDAY).cur;
+const zeroDays = c => { const out = []; for (let d = parse(c.first); iso(d) < TODAY; d = addDays(d, 1)) if (!(c.days.get(iso(d))?.exp)) out.push(iso(d)); return out; };
+
+const ACH = [
+  { id: 'first', g: 'habit', i: 'flag', n: 'Первый шаг', d: 'Добавьте первую запись', tiers: [1], v: c => c.txs.length },
+  { id: 'chron', g: 'habit', i: 'edit_calendar', n: 'Летописец', d: 'Записывайте траты каждый день подряд', tiers: [7, 30, 100], unit: 'дн. подряд', v: c => runs(c, s => c.days.has(s)).best },
+  { id: 'fullm', g: 'habit', i: 'event_available', n: 'Ни дня без строчки', d: 'Записи в каждый день месяца', monthly: true, p: (c, k) => { const [a, b] = pRange(k, c.ms); for (let d = parse(a); iso(d) <= b; d = addDays(d, 1)) if (!c.days.has(iso(d))) return false; return true; } },
+  { id: 'time', g: 'habit', i: 'history', n: 'Путешественник во времени', d: 'Добавьте запись за дату больше месяца назад', tiers: [1], v: c => c.txs.some(t => t.createdAt - parse(t.date).getTime() > 31 * 864e5) ? 1 : 0 },
+  { id: 'econ', g: 'save', i: 'trending_down', n: 'Экономист', d: 'Потратьте меньше, чем в прошлом месяце', monthly: true, p: (c, k) => c.per.has(k - 1) && c.per.get(k).exp < c.per.get(k - 1).exp },
+  { id: 'piggy', g: 'save', i: 'savings', n: 'Копилка', d: 'Отложите часть дохода за месяц', tiers: [10, 20, 30], unit: '% дохода', v: c => Math.max(0, ...c.done.map(k => { const p = c.per.get(k); return p.inc > 0 ? Math.floor((p.inc - p.exp) / p.inc * 100) : 0; })) },
+  { id: 'iron', g: 'save', i: 'shield', n: 'Железная воля', d: 'Три месяца подряд доход больше расходов', tiers: [3], unit: 'мес. подряд', v: c => { let b = 0, r = 0, prev = null; for (const k of c.done) { const p = c.per.get(k); r = p.inc > p.exp ? (prev !== null && k === prev + 1 ? r + 1 : 1) : 0; prev = k; b = Math.max(b, r); } return b; } },
+  { id: 'zero', g: 'save', i: 'do_not_disturb_on', n: 'Нулевой день', d: 'Проживите день без трат', tiers: [1], v: c => zeroDays(c).length },
+  { id: 'monk', g: 'save', i: 'self_improvement', n: 'Монах', d: 'Семь дней без трат за один месяц', tiers: [7], unit: 'дн. без трат', v: c => { const m = {}; for (const d of zeroDays(c)) { const k = pKey(d, c.ms); m[k] = (m[k] || 0) + 1; } return Math.max(0, ...Object.values(m)); } },
+  { id: 'mill', g: 'save', i: 'diamond', n: 'Миллионер', d: 'Сэкономьте миллион тенге за всё время', tiers: [1000000], unit: '₸', v: c => Math.max(0, c.inc - c.exp) },
+  { id: 'depo', g: 'save', i: 'account_balance', n: 'Вкладчик', d: 'Откройте депозит', tiers: [1], v: c => (c.s.deposits || []).length },
+  { id: 'capital', g: 'save', i: 'account_balance_wallet', n: 'Капитал', d: 'Накопите на депозитах', tiers: [500000, 1000000, 3000000], unit: '₸', v: c => Math.round((c.s.deposits || []).filter(d => !d.closedAt).reduce((a, d) => a + depState(d, c.txs).bal, 0)) },
+  { id: 'debtfree', g: 'save', i: 'task_alt', n: 'Без долгов', d: 'Полностью выплатите рассрочку', tiers: [1], v: c => (c.s.installments || []).filter(it => instState(it, c.txs).done).length },
+  { id: 'chef', g: 'cat', i: 'restaurant', n: 'Шеф-повар', d: 'За месяц на кафе ушло меньше, чем на продукты', monthly: true, p: (c, k) => { const b = c.per.get(k).byCat; return (b.food || 0) > 0 && (b.cafe || 0) < b.food; } },
+  { id: 'walk', g: 'cat', i: 'directions_walk', n: 'Пешеход', d: 'Дни подряд без такси', tiers: [7, 14, 30], unit: 'дн. без такси', taxi: true, v: c => runs(c, s => !(c.days.get(s)?.taxi)).best },
+  { id: 'taxo', g: 'cat', i: 'local_taxi', n: 'Таксофоб', d: 'На такси меньше, чем в прошлом месяце', monthly: true, taxi: true, p: (c, k) => c.per.has(k - 1) && (c.per.get(k).byCat.taxi || 0) < (c.per.get(k - 1).byCat.taxi || 0) },
+  { id: 'coffee', g: 'cat', i: 'local_cafe', n: 'Кофеман', d: '30 записей в категории «Кафе»', tiers: [30], unit: 'записей', v: c => c.txs.filter(t => t.cat === 'cafe').length },
+  { id: 'tamer', g: 'cat', i: 'military_tech', n: 'Укротитель', d: 'Уложитесь в лимит любого челленджа за месяц', monthly: true, p: (c, k) => c.s.challenges.some(ch => ch.createdAt <= parse(pRange(k, c.ms)[1]).getTime() + 864e5 && (c.per.get(k).byCat[ch.cat] || 0) <= ch.limit) },
+  { id: 'salary', g: 'inc', i: 'work', n: 'Первая зарплата', d: 'Добавьте первый доход', tiers: [1], v: c => c.txs.filter(t => t.type === 'income').length },
+  { id: 'multi', g: 'inc', i: 'hub', n: 'Многостаночник', d: 'Доходы из трёх разных источников за месяц', tiers: [3], unit: 'источника', v: c => Math.max(0, ...[...c.per.values()].map(p => p.incCats.size)) },
+  { id: 'growth', g: 'inc', i: 'trending_up', n: 'Рост', d: 'Доход больше, чем в прошлом месяце', monthly: true, p: (c, k) => c.per.has(k - 1) && c.per.get(k).inc > c.per.get(k - 1).inc },
+  { id: 'keeper', g: 'secret', i: 'backup', n: 'Хранитель', d: 'Сделайте бэкап данных', tiers: [1, 5], unit: 'бэкапов', v: c => c.s.meta.backups || 0 },
+  { id: 'owl', g: 'secret', hidden: true, i: 'bedtime', n: 'Сова', d: 'Запись между полуночью и пятью утра', tiers: [1], v: c => c.txs.some(t => new Date(t.createdAt).getHours() < 5) ? 1 : 0 },
+  { id: 'perfect', g: 'secret', hidden: true, i: 'adjust', n: 'Перфекционист', d: 'Сумма ровно 10 000 ₸', tiers: [1], v: c => c.txs.some(t => t.amount === 10000) ? 1 : 0 },
+  { id: 'calc', g: 'secret', hidden: true, i: 'calculate', n: 'Калькулятор', d: 'Посчитайте сумму прямо на клавиатуре', tiers: [1], v: c => c.s.meta.calcUsed ? 1 : 0 },
+  { id: 'friday', g: 'secret', hidden: true, i: 'celebration', n: 'Пятница', d: 'Больше всего трат за месяц пришлось на пятницы', monthly: true, p: (c, k) => { const w = c.per.get(k).wd; return w.indexOf(Math.max(...w)) === 5; } },
+];
+const ACH_BY = Object.fromEntries(ACH.map(a => [a.id, a]));
+const GROUPS = [['habit', 'Привычка'], ['save', 'Экономия'], ['cat', 'Категории'], ['inc', 'Доход'], ['secret', 'Секретные']];
+
+function evaluate(s) {
+  const c = buildCtx(s), res = {};
+  for (const a of ACH) {
+    if (a.monthly) { const periods = c.done.filter(k => a.p(c, k)); res[a.id] = { tier: periods.length ? 1 : 0, count: periods.length, periods }; }
+    else { const v = a.v(c); const tier = a.tiers.filter(t => v >= t).length; res[a.id] = { tier, value: v, next: a.tiers[tier] ?? null }; }
+  }
+  return { c, res };
+}
+const tierClass = (a, tier) => {
+  if (!tier) return 'locked';
+  if (a.monthly) return 'gold';
+  const n = a.tiers.length;
+  return (n === 1 ? ['gold'] : n === 2 ? ['silver', 'gold'] : ['bronze', 'silver', 'gold'])[tier - 1];
+};
+const TIER_NAMES = { bronze: 'бронза', silver: 'серебро', gold: 'золото' };
+const progressText = (a, r) => {
+  if (a.monthly) return r.count ? `Получено ×${r.count}` : 'Подводится в конце месяца';
+  if (r.next == null) return 'Максимум';
+  const v = a.unit === '₸' ? kfmt(r.value) : fmt(Math.min(r.value, r.next));
+  return `${v} из ${a.unit === '₸' ? kfmt(r.next) : fmt(r.next)}${a.unit && a.unit !== '₸' ? ' ' + a.unit : ''}`;
+};
+
+/* ================= хранилище: IndexedDB ================= */
+const SCHEMA = 3;
+const idb = {
+  db: null,
+  open() { return new Promise((res, rej) => { try { const r = indexedDB.open('grosh', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => { this.db = r.result; res(); }; r.onerror = () => rej(r.error); } catch (e) { rej(e); } }); },
+  get(k) { return new Promise((res, rej) => { const q = this.db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => rej(q.error); }); },
+  put(k, v) { return new Promise((res, rej) => { const t = this.db.transaction('kv', 'readwrite'); t.objectStore('kv').put(v, k); t.oncomplete = () => res(); t.onerror = () => rej(t.error); }); },
+};
+const store = {
+  s: null, subs: new Set(), saveT: 0,
+  set(patch) {
+    this.s = { ...this.s, ...(typeof patch === 'function' ? patch(this.s) : patch) };
+    this.subs.forEach(f => f());
+    clearTimeout(this.saveT);
+    this.saveT = setTimeout(() => { if (idb.db) idb.put('state', this.s).catch(() => {}); }, 250);
+  },
+};
+function useStore() {
+  const [, force] = useState(0);
+  useEffect(() => { const f = () => force(x => x + 1); store.subs.add(f); return () => store.subs.delete(f); }, []);
+  return store.s;
+}
+function makeDefault() {
+  const tx = seedTx();
+  const first = tx.reduce((m, t) => (t.date < m ? t.date : m), TODAY);
+  const s = {
+    v: SCHEMA,
+    profile: { name: 'Денис', color: 'blue', since: first, showcase: ['walk', 'taxo', 'piggy'] },
+    settings: { theme: 'system', monthStart: 1, weekStart: 1, motion: 'full', haptics: true },
+    categories: CATS,
+    challenges: [
+      { id: uid(), cat: 'taxi', limit: 20000, createdAt: parse(first).getTime() },
+      { id: uid(), cat: 'cafe', limit: 40000, createdAt: parse(first).getTime() },
+    ],
+    tx,
+    meta: { backups: 0, lastBackupAt: null, calcUsed: false, recapSeen: null, ach: {}, demo: true, onboarded: false },
+  };
+  // рассрочки: телефон в процессе, холодильник уже выплачен; депозит с пополнениями 6-го числа
+  s.installments = [
+    { id: uid(), name: 'iPhone 16', total: 540000, months: 12, first: iso(new Date(NOW.getFullYear(), NOW.getMonth() - 3, 10)), paidBefore: 0, createdAt: parse(first).getTime() },
+    { id: uid(), name: 'Холодильник', total: 360000, months: 6, first: iso(new Date(NOW.getFullYear(), NOW.getMonth() - 6, 15)), paidBefore: 3, createdAt: parse(first).getTime() },
+  ];
+  const depStart = iso(addDays(NOW, -70)), depId = uid();
+  s.deposits = [{ id: depId, name: 'Накопительный', rate: 17.52, term: 12, cap: true, start: depStart, createdAt: parse(depStart).getTime() }];
+  s.tx = [...s.tx, ...instDue(s), mkTransfer(depId, 300000, 'Открытие депозита', depStart)];
+  for (let d = addDays(parse(depStart), 1); iso(d) <= TODAY; d = addDays(d, 1)) if (d.getDate() === 6) s.tx.push(mkTransfer(depId, 50000, 'Пополнение депозита', iso(d)));
+  const { c, res } = evaluate(s);
+  for (const a of ACH) {
+    const r = res[a.id];
+    if (r.tier || r.count) s.meta.ach[a.id] = { tier: r.tier, count: r.count || 0, at: a.monthly ? parse(pRange(r.periods.at(-1), c.ms)[1]).getTime() : parse(first).getTime() };
+  }
+  return s;
+}
+
+/* ================= интерфейс: общие механизмы ================= */
+const ui = {};
+const buzz = (p = 8) => { try { if (store.s.settings.haptics && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+const catOf = id => store.s.categories.find(c => c.id === id) || { name: 'Без категории', icon: 'help', color: 'gray' };
+
+// любое изменение данных проходит здесь — после него проверяем ачивки
+function mutate(fn) {
+  store.set(fn);
+  const { res } = evaluate(store.s);
+  const prev = store.s.meta.ach, next = { ...prev }, fresh = [];
+  for (const a of ACH) {
+    const r = res[a.id], p = prev[a.id] || { tier: 0, count: 0 };
+    const up = a.monthly ? r.count > (p.count || 0) : r.tier > (p.tier || 0);
+    if (up) { fresh.push(a.id); next[a.id] = { tier: r.tier, count: r.count || 0, at: Date.now() }; }
+  }
+  if (fresh.length) { store.set(s => ({ meta: { ...s.meta, ach: next } })); ui.unlock(fresh); }
+}
+const addTx = t => { const now = Date.now(); mutate(s => ({ tx: [...s.tx, { ...t, id: uid(), createdAt: now, updatedAt: now, deletedAt: null }] })); };
+const updTx = (id, patch) => mutate(s => ({ tx: s.tx.map(t => (t.id === id ? { ...t, ...patch, updatedAt: Date.now() } : t)) }));
+const delTx = t => {
+  updTx(t.id, { deletedAt: Date.now() });
+  buzz([6, 40, 6]);
+  ui.toast(`Удалено: ${catOf(t.cat).name}, ${money(t.amount)}`, { label: 'Вернуть', run: () => updTx(t.id, { deletedAt: null }) }, 'delete');
+};
+
+function useCount(target, dur = 800, fromZero = false) {
+  const [v, setV] = useState(fromZero ? 0 : target);
+  const prev = useRef(fromZero ? 0 : target);
+  useEffect(() => {
+    const from = prev.current, to = target; prev.current = to;
+    if (from === to || store.s.settings.motion === 'reduced') { setV(to); return; }
+    let raf, t0;
+    const step = t => { t0 ??= t; const p = Math.min(1, (t - t0) / dur); setV(from + (to - from) * (1 - Math.pow(1 - p, 3))); if (p < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+  return v;
+}
+
+const Icon = ({ n, fill, style, cls = '' }) => html`<span class=${'ms ' + cls + (fill ? ' fill' : '')} style=${style} aria-hidden="true">${n}</span>`;
+const Sq = ({ c, size = '' }) => html`<span class=${'sq ' + (size ? 'sq--' + size : '')} style=${`--c:var(--${c.color})`}><${Icon} n=${c.icon} /></span>`;
+const Chev = () => html`<${Icon} n="chevron_right" cls="cell__chev" />`;
+function Badge({ a, r, size = 72, style = '' }) {
+  const tier = r.tier, hidden = a.hidden && !tier;
+  const prog = a.monthly ? (tier ? 1 : 0) : r.next == null ? 1 : Math.min(1, r.value / r.next);
+  const R = 46, C = +(2 * Math.PI * R).toFixed(1);
+  return html`<div class=${`badge badge--${tierClass(a, tier)}`} style=${`--size:${size}px;${style}`}>
+    <svg class="badge__ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="badge__track" cx="50" cy="50" r=${R} />${prog > 0 && html`<circle class="badge__val" cx="50" cy="50" r=${R} stroke-dasharray=${C} style=${`stroke-dashoffset:${C * (1 - prog)};--len:${C}`} />`}</svg>
+    <div class="badge__core"><span class="ms">${hidden ? 'lock' : a.i}</span></div>
+    ${r.count > 1 && html`<span class="badge__count">×${r.count}</span>`}
+  </div>`;
+}
+function Seg({ items, value, onChange, style }) {
+  const i = Math.max(0, items.findIndex(x => x[0] === value));
+  return html`<div class="seg" style=${`--n:${items.length};--i:${i};${style || ''}`}>
+    <span class="seg__thumb"></span>
+    ${items.map(([v, label]) => html`<button aria-pressed=${String(v === value)} onClick=${() => { buzz(5); onChange(v); }}>${label}</button>`)}
+  </div>`;
+}
+const Switch = ({ on, onChange, label }) => html`<button class="switch" role="switch" aria-checked=${String(!!on)} aria-label=${label} onClick=${() => { buzz(5); onChange(!on); }}></button>`;
+
+// экран с большим заголовком, который при прокрутке уходит в компактный навбар
+function Screen({ title, left, right, accessory, children }) {
+  const [sc, setSc] = useState(false);
+  return html`<main class="screen" onScroll=${e => { const v = e.currentTarget.scrollTop > 40; if (v !== sc) setSc(v); }}>
+    <div class=${'nav' + (sc ? ' is-scrolled' : '')}><div class="nav__l">${left}</div><div class="nav__title">${title}</div><div class="nav__r">${right}</div></div>
+    <div class="inner">
+      <h1 class="t-large large-title"><span>${title}</span>${accessory}</h1>
+      ${children}
+    </div>
+  </main>`;
+}
+function Page({ title, onClose, right, children }) {
+  const [closing, setClosing] = useState(false), [sc, setSc] = useState(false);
+  const close = () => { setClosing(true); setTimeout(onClose, 300); };
+  return html`<div class=${'page' + (closing ? ' is-closing' : '')} onScroll=${e => { const v = e.currentTarget.scrollTop > 40; if (v !== sc) setSc(v); }}>
+    <div class=${'nav' + (sc ? ' is-scrolled' : '')}>
+      <div class="nav__l"><button class="back" onClick=${close}><${Icon} n="chevron_left" />Назад</button></div>
+      <div class="nav__title">${title}</div><div class="nav__r">${right}</div>
+    </div>
+    <div class="inner"><h1 class="t-large large-title"><span>${title}</span></h1>${children}</div>
+  </div>`;
+}
+
+// шторка: page sheet снизу на телефоне, окно по центру на десктопе; тянется вниз за ручку
+function Sheet({ onClose, onClosing, auto, children }) {
+  const [closing, setClosing] = useState(false);
+  const ref = useRef(), drag = useRef(null);
+  const close = () => { if (closing) return; setClosing(true); onClosing && onClosing(); setTimeout(onClose, 330); };
+  useEffect(() => { const k = e => e.key === 'Escape' && close(); addEventListener('keydown', k); return () => removeEventListener('keydown', k); }, []);
+  const down = e => { drag.current = { y: e.clientY, dy: 0 }; e.currentTarget.setPointerCapture(e.pointerId); };
+  const move = e => { const d = drag.current; if (!d) return; d.dy = Math.max(0, e.clientY - d.y); ref.current.style.animation = 'none'; ref.current.style.transition = 'none'; ref.current.style.transform = `translateY(${d.dy}px)`; };
+  const up = () => { const d = drag.current; drag.current = null; if (!d) return; ref.current.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1)'; ref.current.style.transform = d.dy > 120 ? 'translateY(100%)' : ''; if (d.dy > 120) { onClosing && onClosing(); setTimeout(onClose, 380); } };
+  const kids = typeof children === 'function' ? children(close) : Array.isArray(children) && typeof children[0] === 'function' ? children[0](close) : children;
+  return html`<div class=${'scrim' + (closing ? ' is-closing' : '')} onClick=${close}></div>
+    <div class=${'sheet' + (auto ? ' sheet--auto' : '') + (closing ? ' is-closing' : '')} ref=${ref} role="dialog" aria-modal="true">
+      <div class="sheet__grab" onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}></div>
+      ${kids}
+    </div>`;
+}
+const SheetNav = ({ title, onCancel, done, onDone, cancel = 'Отмена' }) => html`<div class="sheet__nav">
+  <button class="btn btn--plain" onClick=${onCancel}>${cancel}</button>
+  <span class="sheet__title">${title}</span>
+  ${done ? html`<button class="btn btn--plain is-bold" onClick=${onDone}>${done}</button>` : html`<span></span>`}
+</div>`;
+
+const Spinner = ({ size = 20 }) => html`<span class="spinner" style=${'--s:' + size + 'px'} aria-label="Загрузка">${[0, 1, 2, 3, 4, 5, 6, 7].map(k => html`<i style=${'--k:' + k}></i>`)}</span>`;
+function Field({ id, icon, type = 'text', value, onInput, placeholder, error, autocomplete, inputmode }) {
+  const [show, setShow] = useState(false);
+  const pw = type === 'password';
+  return html`<div>
+    <label class=${'input' + (value ? ' has-value' : '') + (error ? ' is-error' : '')} for=${id}>
+      ${icon && html`<${Icon} n=${icon} />`}
+      <input id=${id} type=${pw && show ? 'text' : type} value=${value} placeholder=${placeholder} autocomplete=${autocomplete} inputmode=${inputmode} onInput=${e => onInput(e.target.value)} aria-invalid=${error ? 'true' : 'false'} />
+      ${pw ? html`<button type="button" class="pw-toggle" aria-label=${show ? 'Скрыть пароль' : 'Показать пароль'} onClick=${() => setShow(!show)}><${Icon} n=${show ? 'visibility_off' : 'visibility'} /></button>`
+        : html`<button type="button" class="input__clear" aria-label="Очистить" onClick=${() => onInput('')}><${Icon} n="close" /></button>`}
+    </label>
+    ${error && html`<div class="helper helper--error">${error}</div>`}
+  </div>`;
+}
+// системные алерт и action sheet
+function Dialog({ d, onClose }) {
+  const [closing, setClosing] = useState(false);
+  const done = fn => { if (closing) return; setClosing(true); setTimeout(() => { onClose(); fn && fn(); }, 230); };
+  if (d.type === 'actions') return html`<div class=${'dialog dialog--sheet' + (closing ? ' is-closing' : '')} onClick=${e => e.target === e.currentTarget && done()}>
+    <div class="action-sheet">
+      <div class="action-sheet__group">
+        ${d.title && html`<div class="action-sheet__title"><b>${d.title}</b>${d.msg}</div>`}
+        ${d.actions.map(a => html`<button class=${'action-sheet__btn' + (a.style === 'destructive' ? ' action-sheet__btn--destructive' : '')} onClick=${() => done(a.run)}>${a.label}</button>`)}
+      </div>
+      <button class="action-sheet__cancel" onClick=${() => done()}>${d.cancel || 'Отмена'}</button>
+    </div>
+  </div>`;
+  return html`<div class=${'dialog' + (closing ? ' is-closing' : '')}>
+    <div class="alert" role="alertdialog" aria-label=${d.title}>
+      <div class="alert__body"><div class="alert__title">${d.title}</div>${d.msg && html`<div class="alert__msg">${d.msg}</div>`}</div>
+      <div class=${'alert__actions' + (d.actions.length > 2 ? ' alert__actions--stack' : '')}>
+        ${d.actions.map(a => html`<button class=${'alert__btn' + (a.style ? ' alert__btn--' + a.style : '')} onClick=${() => done(a.run)}>${a.label}</button>`)}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= вход и регистрация (интерфейс; сервер подключим позже) ================= */
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const pwScore = p => !p ? 0 : Math.min(4, (p.length >= 8) + (/\d/.test(p)) + (/[a-zа-я]/.test(p) && /[A-ZА-Я]/.test(p)) + (/[^\w\sа-яА-Я]/.test(p)) + (p.length >= 12 ? 1 : 0) - (p.length < 8 ? 1 : 0)) || 1;
+const PW_LEVEL = [null, ['Слабый', 'var(--red)'], ['Средний', 'var(--orange)'], ['Хороший', 'var(--yellow)'], ['Надёжный', 'var(--green)']];
+function Auth({ start = 'welcome', onClose }) {
+  const s = store.s;
+  const [step, setStep] = useState(start), [back, setBack] = useState(false), [closing, setClosing] = useState(false);
+  const [f, setF] = useState({ name: s.profile.name || '', email: '', pw: '', migrate: true });
+  const [err, setErr] = useState({}), [busy, setBusy] = useState(false), [shake, setShake] = useState(0);
+  const go = (to, isBack = false) => { buzz(4); setBack(isBack); setErr({}); setStep(to); };
+  const close = () => { if (closing) return; setClosing(true); store.set(st => ({ meta: { ...st.meta, onboarded: true } })); setTimeout(onClose, 330); };
+  const set = k => v => { setF(x => ({ ...x, [k]: v })); if (err[k]) setErr(e => ({ ...e, [k]: null })); };
+  const score = pwScore(f.pw);
+  const fail = e => { setErr(e); setShake(x => x + 1); buzz([10, 30, 10]); };
+  const signIn = (account, msg, name) => {
+    store.set(st => ({ profile: { ...st.profile, name: name || st.profile.name, account: { ...account, since: Date.now() } }, meta: { ...st.meta, onboarded: true } }));
+    close(); ui.toast(msg);
+  };
+  const submit = kind => {
+    const e = {};
+    if (kind === 'register' && !f.name.trim()) e.name = 'Введите имя';
+    if (!EMAIL_RE.test(f.email.trim())) e.email = f.email ? 'Похоже, в адресе опечатка' : 'Введите почту';
+    if (kind !== 'forgot' && f.pw.length < 8) e.pw = f.pw ? 'Пароль короче 8 символов' : 'Введите пароль';
+    if (Object.keys(e).length) return fail(e);
+    setBusy(kind);
+    setTimeout(() => {
+      setBusy(false);
+      if (kind === 'forgot') return go('sent');
+      if (kind === 'register') signIn({ email: f.email.trim(), provider: 'email' }, 'Аккаунт создан', f.name.trim());
+      else signIn({ email: f.email.trim(), provider: 'email' }, `Вы вошли как ${f.email.trim()}`);
+    }, 1200);
+  };
+  const social = name => { setBusy(name); setTimeout(() => { setBusy(false); signIn({ email: null, provider: name }, `Вы вошли через ${name}`); }, 1000); };
+  const btn = (kind, label) => html`<button class="btn btn--filled" disabled=${!!busy} onClick=${() => submit(kind)}>${busy === kind ? html`<${Spinner} size=${20} />` : label}</button>`;
+  const socials = html`<div class="auth__or">или</div>
+    <button class="btn btn--apple" disabled=${!!busy} onClick=${() => social('Apple')}>${busy === 'Apple' ? html`<${Spinner} />` : 'Продолжить с Apple'}</button>
+    <button class="btn" style="color:var(--label)" disabled=${!!busy} onClick=${() => social('Google')}>${busy === 'Google' ? html`<${Spinner} />` : 'Продолжить с Google'}</button>`;
+  const nTx = s.tx.filter(t => !t.deletedAt).length, nAch = Object.keys(s.meta.ach).length;
+  const stepCls = 'auth__step' + (back ? ' is-back' : '');
+  const steps = {
+    welcome: html`<div class=${stepCls} key="welcome">
+      <div class="auth__hero"><div class="app-icon"><${Icon} n="savings" /></div><h1 class="t-large">Грош</h1><p>Учёт трат в тенге с наградами, челленджами и итогами месяца.</p></div>
+      <div class="group">
+        <div class="cell cell--icon"><span class="sq" style="--c:var(--blue)"><${Icon} n="cloud_sync" /></span><span class="cell__main"><span>Синхронизация</span><span class="cell__sub" style="white-space:normal">Телефон, компьютер и браузер видят одни данные</span></span></div>
+        <div class="cell cell--icon"><span class="sq" style="--c:var(--green)"><${Icon} n="lock" /></span><span class="cell__main"><span>Данные только ваши</span><span class="cell__sub" style="white-space:normal">Вход по почте, Apple или Google</span></span></div>
+        <div class="cell cell--icon"><span class="sq" style="--c:var(--orange)"><${Icon} n="emoji_events" /></span><span class="cell__main"><span>Ничего не потеряется</span><span class="cell__sub" style="white-space:normal">Записи и награды с устройства переедут в аккаунт</span></span></div>
+      </div>
+      <div class="auth__actions">
+        <button class="btn btn--filled" onClick=${() => go('register')}>Создать аккаунт</button>
+        <button class="btn btn--tinted" onClick=${() => go('login')}>Войти</button>
+        <button class="btn btn--plain" onClick=${close}>Продолжить без аккаунта</button>
+      </div>
+    </div>`,
+    login: html`<div class=${stepCls} key="login">
+      <div class="auth__head"><h1 class="t-large">Вход</h1><p>С возвращением. Записи синхронизируются сразу после входа.</p></div>
+      <div class=${'auth__fields' + (shake % 2 ? ' is-shake' : '')} key=${'f' + shake}>
+        <${Field} id="login-email" icon="mail" type="email" autocomplete="email" inputmode="email" placeholder="Почта" value=${f.email} onInput=${set('email')} error=${err.email} />
+        <${Field} id="login-pw" icon="lock" type="password" autocomplete="current-password" placeholder="Пароль" value=${f.pw} onInput=${set('pw')} error=${err.pw} />
+        <div style="text-align:right"><button class="link t-subhead" onClick=${() => go('forgot')}>Забыли пароль?</button></div>
+      </div>
+      <div class="auth__actions">${btn('login', 'Войти')}${socials}</div>
+      <div class="auth__foot">Нет аккаунта? <button class="link" onClick=${() => go('register')}>Создать</button></div>
+    </div>`,
+    register: html`<div class=${stepCls} key="register">
+      <div class="auth__head"><h1 class="t-large">Новый аккаунт</h1><p>Займёт полминуты.</p></div>
+      <div class=${'auth__fields' + (shake % 2 ? ' is-shake' : '')} key=${'f' + shake}>
+        <${Field} id="reg-name" icon="person" autocomplete="name" placeholder="Имя" value=${f.name} onInput=${set('name')} error=${err.name} />
+        <${Field} id="reg-email" icon="mail" type="email" autocomplete="email" inputmode="email" placeholder="Почта" value=${f.email} onInput=${set('email')} error=${err.email} />
+        <div>
+          <${Field} id="reg-pw" icon="lock" type="password" autocomplete="new-password" placeholder="Пароль" value=${f.pw} onInput=${set('pw')} error=${err.pw} />
+          ${!err.pw && html`<div class="strength">${[1, 2, 3, 4].map(i => html`<i class=${i <= score ? 'on' : ''} style=${'--c:' + (PW_LEVEL[score]?.[1] || 'transparent')}></i>`)}</div>
+          <div class="helper">${f.pw ? `${PW_LEVEL[score][0]} пароль` : 'Минимум 8 символов, лучше с цифрами и заглавными'}</div>`}
+        </div>
+        <div class="group"><div class="cell" onClick=${() => set('migrate')(!f.migrate)} style="cursor:pointer">
+          <span class="cell__main"><span>Перенести данные с устройства</span><span class="cell__sub">${nTx} ${plural(nTx, 'запись', 'записи', 'записей')} и ${nAch} ${plural(nAch, 'награда', 'награды', 'наград')}</span></span>
+          <button class="check" role="checkbox" aria-checked=${String(f.migrate)} aria-label="Перенести данные"><${Icon} n="check" /></button>
+        </div></div>
+      </div>
+      <div class="auth__actions">${btn('register', 'Создать аккаунт')}${socials}<div class="auth__note">Создавая аккаунт, вы соглашаетесь с условиями использования и политикой конфиденциальности.</div></div>
+      <div class="auth__foot">Уже есть аккаунт? <button class="link" onClick=${() => go('login')}>Войти</button></div>
+    </div>`,
+    forgot: html`<div class=${stepCls} key="forgot">
+      <div class="auth__head"><h1 class="t-large">Сброс пароля</h1><p>Пришлём ссылку, по которой можно задать новый пароль.</p></div>
+      <div class=${'auth__fields' + (shake % 2 ? ' is-shake' : '')} key=${'f' + shake}>
+        <${Field} id="forgot-email" icon="mail" type="email" autocomplete="email" inputmode="email" placeholder="Почта" value=${f.email} onInput=${set('email')} error=${err.email} />
+      </div>
+      <div class="auth__actions">${btn('forgot', 'Отправить ссылку')}</div>
+    </div>`,
+    sent: html`<div class=${stepCls} key="sent">
+      <div class="auth__hero" style="padding-top:40px"><div class="app-icon" style="background:var(--green)"><${Icon} n="mark_email_read" /></div><h1 class="t-title1">Проверьте почту</h1><p>Отправили ссылку на ${f.email.trim()}. Она действует один час.</p></div>
+      <div class="auth__actions"><button class="btn btn--filled" onClick=${() => go('login', true)}>Вернуться ко входу</button></div>
+    </div>`,
+  };
+  const backTo = { login: 'welcome', register: 'welcome', forgot: 'login', sent: 'login' }[step];
+  return html`<div class=${'auth' + (closing ? ' is-closing' : '')} role="dialog" aria-modal="true" aria-label="Вход в Грош">
+    <div class="auth__inner">
+      <div class="auth__top">
+        ${backTo ? html`<button class="back" onClick=${() => go(backTo, true)}><${Icon} n="chevron_left" />Назад</button>` : html`<span></span>`}
+        <button class="circle-btn" aria-label="Закрыть" onClick=${close}><${Icon} n="close" /></button>
+      </div>
+      ${steps[step]}
+      <p class="auth__note" style="margin-top:16px">Прототип: сервер ещё не подключён, вход имитируется.</p>
+    </div>
+  </div>`;
+}
+
+/* ================= шторка: новая операция ================= */
+const evalExpr = s => s.split(/(?=[+−])/).reduce((a, t) => a + (t[0] === '−' ? -1 : 1) * (+t.replace(/[+−]/, '') || 0), 0);
+function TxSheet({ tx, preset, close }) {
+  const s = store.s;
+  const [type, setType] = useState(tx?.type || preset?.type || 'expense');
+  const [expr, setExpr] = useState(tx ? String(tx.amount) : '');
+  const [cat, setCat] = useState(tx?.cat || null);
+  const [date, setDate] = useState(tx?.date || preset?.date || TODAY);
+  const [note, setNote] = useState(tx?.note || '');
+  const [shake, setShake] = useState(0);
+  const cats = s.categories.filter(c => c.type === type && !c.archived).sort((a, b) => a.order - b.order);
+  // последние использованные категории — первыми
+  const recent = useMemo(() => { const m = {}; s.tx.filter(t => !t.deletedAt && t.type === type).slice(-60).forEach((t, i) => (m[t.cat] = i)); return m; }, [type]);
+  const sorted = [...cats].sort((a, b) => (recent[b.id] ?? -1) - (recent[a.id] ?? -1));
+  const amount = Math.max(0, evalExpr(expr));
+  const hasOp = /[+−]/.test(expr);
+  useEffect(() => { if (cat && !cats.some(c => c.id === cat)) setCat(null); }, [type]);
+
+  const press = k => {
+    buzz(4);
+    setExpr(e => {
+      if (k === 'C') return '';
+      if (k === '⌫') return e.slice(0, -1);
+      if (k === '+' || k === '−') return !e || '+−'.includes(e.at(-1)) ? e : e + k;
+      if (e.length >= 14) return e;
+      if ((e === '' || '+−'.includes(e.at(-1))) && (k === '0' || k === '000')) return e;
+      return e + k;
+    });
+  };
+  const fail = msg => { setShake(x => x + 1); buzz([10, 30, 10]); ui.toast(msg, null, 'error'); };
+  const save = () => {
+    if (!amount) return fail('Введите сумму');
+    if (!cat) return fail('Выберите категорию');
+    const data = { type, amount: Math.round(amount), cat, date, note: note.trim() };
+    if (hasOp) store.set(st => ({ meta: { ...st.meta, calcUsed: true } }));
+    close();
+    setTimeout(() => {
+      if (tx) { updTx(tx.id, data); ui.toast('Изменения сохранены'); }
+      else { addTx(data); ui.toast(`${catOf(cat).name}: ${type === 'income' ? '+' : '−'}${money(data.amount)}`); }
+      buzz(12);
+    }, 220);
+  };
+  const keys = ['1', '2', '3', '⌫', '4', '5', '6', '+', '7', '8', '9', '−', '000', '0', 'C'];
+  const digits = fmt(amount).split('');
+  return html`
+    <${SheetNav} title=${tx ? 'Запись' : type === 'income' ? 'Новый доход' : 'Новый расход'} onCancel=${close} done=${tx ? 'Готово' : 'Добавить'} onDone=${save} />
+    <div class="sheet__body">
+      <div class=${'tx' + (type === 'income' ? ' tx--income' : '')}>
+        <${Seg} items=${[['expense', 'Расход'], ['income', 'Доход']]} value=${type} onChange=${setType} />
+        <div class=${'amount' + (shake % 2 ? ' is-shake' : '')} key=${'sh' + shake}>
+          <div class="amount__expr">${hasOp ? expr.replace(/([+−])/g, ' $1 ') + ' =' : ''}</div>
+          <div class="amount__val">${type === 'income' ? '+' : ''}${digits.join('')}<span class="cur">₸</span></div>
+        </div>
+        <div class="picks">
+          ${sorted.slice(0, 8).map(c => html`<button class="pick" style=${`--c:var(--${c.color})`} aria-pressed=${String(c.id === cat)} onClick=${() => { buzz(6); setCat(c.id); }}><${Sq} c=${c} size="md" /><span>${c.name}</span></button>`)}
+        </div>
+        <div class="row-scroll">
+          ${sorted.slice(8).map(c => html`<button class="capsule" aria-pressed=${String(c.id === cat)} onClick=${() => setCat(c.id)}><${Icon} n=${c.icon} fill />${c.name}</button>`)}
+        </div>
+        <div class="row-scroll">
+          <button class="capsule" aria-pressed=${String(date === TODAY)} onClick=${() => setDate(TODAY)}>Сегодня</button>
+          <button class="capsule" aria-pressed=${String(date === YESTERDAY)} onClick=${() => setDate(YESTERDAY)}>Вчера</button>
+          <label class="capsule date-cap" aria-pressed=${String(date !== TODAY && date !== YESTERDAY)}><${Icon} n="calendar_month" />${date !== TODAY && date !== YESTERDAY ? dateLong(date) : 'Дата'}
+            <input type="date" id="tx-date" value=${date} max=${TODAY} onInput=${e => e.target.value && setDate(e.target.value)} aria-label="Дата" /></label>
+        </div>
+        <input class="field" id="tx-note" placeholder="Заметка" value=${note} onInput=${e => setNote(e.target.value)} />
+        ${tx && html`<button class="btn btn--destructive" onClick=${() => { close(); setTimeout(() => delTx(tx), 220); }}>Удалить запись</button>`}
+        <div class="pad" style=${`--accent:var(--${type === 'income' ? 'green' : 'tint'})`}>
+          ${keys.map(k => html`<button class=${'key' + ('⌫+−'.includes(k) ? ' key--op' : '')} onClick=${() => press(k)} aria-label=${k === '⌫' ? 'Стереть' : k}>${k === '⌫' ? html`<${Icon} n="backspace" />` : k}</button>`)}
+          <button class="key key--ok" style="grid-column:4;grid-row:4" onClick=${save} aria-label="Сохранить"><${Icon} n="check" /></button>
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ================= главная ================= */
+function TxRow({ t }) {
+  const c = catOf(t.cat);
+  const st = useRef(null), swiped = useRef(false);
+  const [dx, setDx] = useState(0), [drag, setDrag] = useState(false), [gone, setGone] = useState(false);
+  const down = e => { st.current = { x: e.clientX, y: e.clientY, dx: 0, lock: null }; swiped.current = false; };
+  const move = e => {
+    const o = st.current; if (!o) return;
+    const ddx = e.clientX - o.x, ddy = e.clientY - o.y;
+    if (o.lock === null && (Math.abs(ddx) > 8 || Math.abs(ddy) > 8)) { o.lock = Math.abs(ddx) > Math.abs(ddy) ? 'x' : 'y'; if (o.lock === 'x') { e.currentTarget.setPointerCapture(e.pointerId); setDrag(true); } }
+    if (o.lock === 'x') { o.dx = Math.min(0, ddx); setDx(o.dx); if (o.dx < -110 && !o.armed) { o.armed = true; buzz(10); } }
+  };
+  const up = () => {
+    const o = st.current; st.current = null; setDrag(false); if (!o) return;
+    if (o.lock === 'x') { swiped.current = true; if (o.dx < -110) { setDx(-600); setGone(true); setTimeout(() => delTx(t), 300); } else setDx(0); }
+  };
+  return html`<div class=${'cell-wrap' + (gone ? ' is-gone' : '') + (dx < 0 ? ' is-drag' : '')}><div>
+    <div class="swipe-del">Удалить</div>
+    <button class="cell cell--tx" style=${`transform:translateX(${dx}px);transition:${drag ? 'none' : 'transform 420ms cubic-bezier(.32,.72,0,1), background 220ms'}`}
+      onPointerDown=${down} onPointerMove=${move} onPointerUp=${up} onPointerCancel=${up}
+      onClick=${() => { if (swiped.current) return; if (t.type === 'transfer') { const d = (store.s.deposits || []).find(x => x.id === t.dep); d && ui.sheet({ kind: 'dep', d }); } else ui.sheet({ kind: 'tx', tx: t }); }}>
+      <${Sq} c=${c} size="md" />
+      <span class="cell__main"><span class="cell__title">${c.name}</span><span class="cell__sub">${t.note || (t.type === 'income' ? 'Доход' : 'Без заметки')}</span></span>
+      <span class=${'amt' + (t.type === 'income' ? ' amt--in' : '')} style=${t.type === 'transfer' ? 'color:var(--label-2)' : ''}>${t.type === 'income' ? '+' : t.type === 'transfer' ? (t.amount > 0 ? '→ ' : '← ') : '−'}${fmt(Math.abs(t.amount))} ₸</span>
+    </button></div></div>`;
+}
+function Ledger({ txs, limit }) {
+  const groups = useMemo(() => {
+    const m = new Map();
+    [...txs].sort((a, b) => (b.date + b.createdAt).localeCompare(a.date + a.createdAt)).forEach(t => { if (!m.has(t.date)) m.set(t.date, []); m.get(t.date).push(t); });
+    return [...m.entries()];
+  }, [txs]);
+  if (!groups.length) return html`<div class="card" style="text-align:center;justify-items:center"><${Icon} n="receipt_long" style="font-size:40px;color:var(--label-3)" /><b>Записей пока нет</b><span class="secondary t-subhead">Нажмите «+», чтобы добавить первую трату.</span></div>`;
+  return html`<div class="col stagger" style="gap:24px">${groups.slice(0, limit).map(([d, list], gi) => {
+    const exp = list.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
+    return html`<div class="section" style=${'--i:' + gi} key=${d}>
+      <div class="section__header"><span>${dayTitle(d)}</span><span class="num">${exp ? '−' + fmt(exp) + ' ₸' : ''}</span></div>
+      <div class="group">${list.map(t => html`<${TxRow} key=${t.id} t=${t} />`)}</div>
+    </div>`;
+  })}</div>`;
+}
+function ChallengeCell({ ch, c, i }) {
+  const cat = catOf(ch.cat);
+  const [a, b] = pRange(c.cur, c.ms);
+  const spent = c.txs.filter(t => t.cat === ch.cat && t.type === 'expense' && t.date >= a && t.date <= b).reduce((s, t) => s + t.amount, 0);
+  const p = spent / ch.limit, left = diffDays(TODAY, b);
+  const col = p > 1 ? 'var(--red)' : p > .8 ? 'var(--orange)' : 'var(--green)';
+  const state = p > 1 ? `Превышен на ${money(spent - ch.limit)}` : `Осталось ${money(ch.limit - spent)} · ${left} ${plural(left, 'день', 'дня', 'дней')}`;
+  return html`<button class="cell cell--icon" onClick=${() => ui.sheet({ kind: 'challenge', ch })}>
+    <${Sq} c=${cat} />
+    <div class="chal">
+      <div class="chal__row"><span>${cat.name}</span><span class="cell__value t-subhead">${fmt(spent)} из ${fmt(ch.limit)}</span></div>
+      <div class="progress" style=${`--p:${Math.min(1, p)};--c:${col};--delay:${i * 100}ms`}><i></i></div>
+      <span class="chal__state" style=${p > .8 ? 'color:' + col : 'color:var(--label-2)'}>${state}</span>
+    </div>
+  </button>`;
+}
+function Home({ s, c }) {
+  const [limit, setLimit] = useState(10);
+  const [q, setQ] = useState(''), [qa, setQa] = useState(false);
+  const ql = q.trim().toLowerCase();
+  const found = ql ? c.txs.filter(t => (t.note || '').toLowerCase().includes(ql) || catOf(t.cat).name.toLowerCase().includes(ql) || String(t.amount).includes(ql.replace(/\s/g, ''))) : c.txs;
+  const p = c.per.get(c.cur) || { exp: 0, inc: 0 };
+  const bal = useCount(c.inc - c.exp - c.tr, 1100, true);
+  const deps = (s.deposits || []).filter(d => !d.closedAt).map(d => ({ d, st: depState(d, c.txs) }));
+  const insts = (s.installments || []).map(it => ({ it, st: instState(it, c.txs) }));
+  const depTotal = deps.reduce((a, x) => a + x.st.bal, 0), debt = insts.reduce((a, x) => a + x.st.left, 0);
+  const active = insts.filter(x => !x.st.done), closedN = insts.length - active.length;
+  const [a, b] = pRange(c.cur, c.ms);
+  const dayN = diffDays(a, TODAY) + 1, dayAll = diffDays(a, b) + 1;
+  const recapKey = c.cur - 1;
+  const showRecap = c.per.has(recapKey) && s.meta.recapSeen !== recapKey;
+  const curM = c.cur % 12;
+  return html`<${Screen} title="Обзор"
+    right=${html`<button class="circle-btn" aria-label="Настройки" onClick=${() => ui.page('settings')}><${Icon} n="settings" /></button>`}
+    accessory=${html`<button class="avatar" style=${`--c:var(--${s.profile.color})`} aria-label="Профиль" onClick=${() => ui.page('profile')}>${initials(s.profile.name)}</button>`}>
+    <div class="split">
+      <div class="col">
+        <div class="hero">
+          <span class="metric__label">Свободные деньги</span>
+          <span class="hero__v">${fmt(bal)}<small>₸</small></span>
+          <span class="secondary t-subhead">${cap(M_NOM[curM])}: день ${dayN} из ${dayAll}</span>
+        </div>
+        <div class="group">
+          <div class="cell cell--icon"><span class="sq" style="--c:var(--green)"><${Icon} n="south_west" /></span><span class="cell__main"><span class="cell__title">Доход за ${M_NOM[curM]}</span></span><span class="amt amt--in">+${fmt(p.inc)} ₸</span></div>
+          <div class="cell cell--icon"><span class="sq" style="--c:var(--red)"><${Icon} n="north_east" /></span><span class="cell__main"><span class="cell__title">Расход за ${M_NOM[curM]}</span></span><span class="amt">−${fmt(p.exp)} ₸</span></div>
+          <div class="cell cell--icon"><span class="sq" style="--c:var(--green)"><${Icon} n="account_balance" /></span><span class="cell__main"><span class="cell__title">На депозитах</span></span><span class="amt">${fmt(depTotal)} ₸</span></div>
+          <div class="cell cell--icon"><span class="sq" style="--c:var(--purple)"><${Icon} n="credit_card" /></span><span class="cell__main"><span class="cell__title">Осталось по рассрочкам</span></span><span class="amt">${fmt(debt)} ₸</span></div>
+        </div>
+        ${showRecap && html`<div class="group"><button class="cell cell--icon" onClick=${() => ui.recap(recapKey)}>
+          <span class="sq" style="--c:var(--indigo)"><${Icon} n="auto_awesome" /></span>
+          <span class="cell__main"><span class="cell__title">Итоги ${M_GEN[recapKey % 12]}</span><span class="cell__sub">Траты, награды и такси за месяц</span></span><${Chev} />
+        </button></div>`}
+        <div class="section">
+          <div class="section__header"><span>Челленджи</span></div>
+          <div class="group">
+            ${s.challenges.map((ch, i) => html`<${ChallengeCell} key=${ch.id} ch=${ch} c=${c} i=${i} />`)}
+            <button class="cell more" onClick=${() => ui.sheet({ kind: 'challenge' })}>Новый челлендж</button>
+          </div>
+          <div class="section__footer">Лимит на категорию в месяц. Уложитесь — получите награду «Укротитель».</div>
+        </div>
+        <div class="section">
+          <div class="section__header"><span>Рассрочки</span><span class="num">${debt ? fmt(debt) + ' ₸' : ''}</span></div>
+          <div class="group">
+            ${active.map(({ it, st }, i) => { const dl = st.next ? diffDays(TODAY, st.next.date) : 0; return html`<button class="cell cell--icon" key=${it.id} onClick=${() => ui.sheet({ kind: 'inst', it })}>
+              <span class="sq" style="--c:var(--purple)"><${Icon} n="credit_card" /></span>
+              <div class="chal">
+                <div class="chal__row"><span>${it.name}</span><span class="cell__value t-subhead">${st.paidN} из ${it.months}</span></div>
+                <div class="progress" style=${`--p:${st.paidN / it.months};--c:var(--purple);--delay:${i * 100}ms`}><i></i></div>
+                <span class="chal__state" style=${dl <= 3 ? 'color:var(--orange)' : 'color:var(--label-2)'}>${money(st.next.amount)} · ${dl === 0 ? 'сегодня' : dl === 1 ? 'завтра' : dl <= 3 ? `через ${dl} ${plural(dl, 'день', 'дня', 'дней')}` : dateLong(st.next.date)}</span>
+              </div>
+            </button>`; })}
+            ${closedN > 0 && html`<div class="cell cell--icon"><span class="sq" style="--c:var(--gray)"><${Icon} n="task_alt" /></span><span class="cell__main secondary">Выплачено полностью: ${closedN}</span></div>`}
+            <button class="cell more" onClick=${() => ui.sheet({ kind: 'inst' })}>Новая рассрочка</button>
+          </div>
+          <div class="section__footer">Платёж списывается сам в день оплаты и попадает в расходы.</div>
+        </div>
+        <div class="section">
+          <div class="section__header"><span>Депозиты</span><span class="num">${depTotal ? fmt(depTotal) + ' ₸' : ''}</span></div>
+          <div class="group">
+            ${deps.map(({ d, st }) => html`<button class="cell cell--icon" key=${d.id} onClick=${() => ui.sheet({ kind: 'dep', d })}>
+              <span class="sq" style="--c:var(--green)"><${Icon} n="account_balance" /></span>
+              <span class="cell__main"><span class="cell__title">${d.name}</span><span class="cell__sub">${fmtRate(effFromNom(d.rate, d.cap))}% ГЭСВ · <span style="color:var(--green)">+${fmt(st.interest)} ₸</span></span></span>
+              <span class="amt">${fmt(st.bal)} ₸</span><${Chev} />
+            </button>`)}
+            <button class="cell more" onClick=${() => ui.sheet({ kind: 'dep' })}>Открыть депозит</button>
+          </div>
+          <div class="section__footer">Пополнение — это перевод, а не расход: оно уменьшает свободные деньги, но не попадает в статистику трат.</div>
+        </div>
+      </div>
+      <div class="col" style="gap:20px">
+        <div class=${'search' + (qa || q ? ' is-active' : '')}>
+          <label class=${'search__field' + (q ? ' has-value' : '')} for="home-search"><${Icon} n="search" />
+            <input id="home-search" type="search" placeholder="Поиск по заметкам и категориям" value=${q} onInput=${e => setQ(e.target.value)} onFocus=${() => setQa(true)} onBlur=${() => setQa(false)} />
+            <button type="button" class="input__clear" aria-label="Очистить" onMouseDown=${e => e.preventDefault()} onClick=${() => setQ('')}><${Icon} n="close" /></button>
+          </label>
+          <button class="search__cancel" onMouseDown=${e => e.preventDefault()} onClick=${() => { setQ(''); setQa(false); document.activeElement?.blur(); }}>Отмена</button>
+        </div>
+        ${ql && !found.length ? html`<div class="empty"><${Icon} n="search" /><b>Ничего не нашлось</b><p>Попробуйте другое слово или сумму без пробелов.</p></div>` : html`<${Ledger} txs=${found} limit=${ql ? 999 : limit} />`}
+        ${!ql && new Set(c.txs.map(t => t.date)).size > limit && html`<div class="group"><button class="cell more" onClick=${() => setLimit(l => l + 14)}>Показать ещё</button></div>`}
+      </div>
+    </div>
+  <//>`;
+}
+
+/* ================= календарь ================= */
+function CalendarScreen({ s, c }) {
+  const [ym, setYm] = useState(NOW.getFullYear() * 12 + NOW.getMonth());
+  const [sel, setSel] = useState(TODAY);
+  const [dir, setDir] = useState(0);
+  const y = Math.floor(ym / 12), m = ym % 12;
+  const dim = new Date(y, m + 1, 0).getDate();
+  const ws = s.settings.weekStart;
+  const lead = (new Date(y, m, 1).getDay() - ws + 7) % 7;
+  const wds = [...Array(7)].map((_, i) => WD[(i + ws) % 7]);
+  const dates = [...Array(dim)].map((_, i) => iso(new Date(y, m, i + 1)));
+  const vals = dates.map(d => c.days.get(d)?.exp || 0);
+  const nz = vals.filter(Boolean).sort((a, b) => a - b);
+  const capV = nz.length ? nz[Math.floor(nz.length * .85)] : 1;
+  const mExp = vals.reduce((a, b) => a + b, 0), mInc = dates.reduce((a, d) => a + (c.days.get(d)?.inc || 0), 0);
+  const zero = dates.filter(d => d < TODAY && d >= c.first && !(c.days.get(d)?.exp)).length;
+  const go = d => { buzz(5); setDir(d); setYm(v => v + d); };
+  const sw = useRef(null);
+  const selTx = c.txs.filter(t => t.date === sel).sort((a, b) => b.createdAt - a.createdAt);
+  const selExp = selTx.filter(t => t.type === 'expense').reduce((a, t) => a + t.amount, 0);
+  return html`<${Screen} title="Календарь">
+    <div class="split split--wide">
+      <div class="group cal-card cal-wrap"
+        onPointerDown=${e => (sw.current = { x: e.clientX, y: e.clientY })}
+        onPointerUp=${e => { const o = sw.current; sw.current = null; if (!o) return; const dx = e.clientX - o.x; if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(e.clientY - o.y)) go(dx < 0 ? 1 : -1); }}>
+        <div class="cal-head">
+          <b><span>${M_NOM[m]}</span> ${y}</b>
+          <button class="btn btn--plain" aria-label="Предыдущий месяц" onClick=${() => go(-1)}><${Icon} n="chevron_left" /></button>
+          <button class="btn btn--plain" aria-label="Следующий месяц" onClick=${() => go(1)}><${Icon} n="chevron_right" /></button>
+        </div>
+        <div class=${'cal ' + (dir > 0 ? 'cal-anim-l' : dir < 0 ? 'cal-anim-r' : '')} key=${ym}>
+          ${wds.map(w => html`<div class="cal__wd">${w}</div>`)}
+          ${[...Array(lead)].map(() => html`<div class="day day--out"></div>`)}
+          ${dates.map((d, i) => {
+            const v = vals[i], h = Math.min(1, v / capV), fut = d > TODAY;
+            const cls = ['day', d === TODAY && 'day--today', d === sel && 'day--sel', fut && 'day--future'].filter(Boolean).join(' ');
+            return html`<button class=${cls} style=${`--h:${Math.round(25 + h * 75)}%`} onClick=${() => { buzz(4); setSel(d); }} aria-label=${dateLong(d)}>
+              <span class="day__n">${i + 1}</span>
+              <span class="day__v">${v ? kfmt(v) : c.days.get(d)?.inc ? html`<span class="day__inc" style="display:inline-block"></span>` : ''}</span>
+            </button>`;
+          })}
+        </div>
+        <div class="cal-sum"><span>Расход <b>${fmt(mExp)} ₸</b></span><span>Доход <b>${fmt(mInc)} ₸</b></span>${zero ? html`<span>Без трат <b>${zero}</b></span>` : ''}</div>
+      </div>
+      <div class="section" key=${sel}>
+        <div class="section__header"><span>${dayTitle(sel)}</span><span class="num">${selExp ? '−' + money(selExp) : ''}</span></div>
+        <div class="group">
+          ${selTx.map(t => html`<${TxRow} key=${t.id} t=${t} />`)}
+          ${!selTx.length && html`<div class="cell"><span class="secondary">${sel > TODAY ? 'Этот день ещё впереди' : 'В этот день трат не было'}</span></div>`}
+          ${sel <= TODAY && html`<button class="cell more" onClick=${() => ui.sheet({ kind: 'tx', preset: { date: sel } })}>Добавить на ${sel === TODAY ? 'сегодня' : dateLong(sel)}</button>`}
+        </div>
+        ${!selTx.length && sel < TODAY && html`<div class="section__footer">Дни без трат приближают награду «Монах».</div>`}
+      </div>
+    </div>
+  <//>`;
+}
+
+/* ================= статистика ================= */
+function rangeFor(mode, off, s) {
+  if (mode === 'week') {
+    const d = addDays(NOW, -((NOW.getDay() - s.settings.weekStart + 7) % 7) + off * 7);
+    const a = iso(d), b = iso(addDays(d, 6));
+    return { a, b, label: `${dateLong(a)} — ${dateLong(b)}` };
+  }
+  if (mode === 'month') {
+    const k = pKey(TODAY, s.settings.monthStart) + off;
+    const [a, b] = pRange(k, s.settings.monthStart);
+    return { a, b, k, label: cap(M_NOM[k % 12]) + ' ' + Math.floor(k / 12) };
+  }
+  const yy = NOW.getFullYear() + off;
+  return { a: `${yy}-01-01`, b: `${yy}-12-31`, label: String(yy) };
+}
+const Count = ({ v, dur = 900 }) => { const x = useCount(v, dur, true); return fmt(x); };
+function Stats({ s, c }) {
+  const [mode, setMode] = useState('month');
+  const [off, setOff] = useState(0);
+  const [kind, setKind] = useState('expense');
+  const [selCat, setSelCat] = useState(null);
+  const [selBar, setSelBar] = useState(null);
+  const r = rangeFor(mode, off, s), pr = rangeFor(mode, off - 1, s);
+  const inR = (t, x) => t.date >= x.a && t.date <= x.b;
+  const cur = c.txs.filter(t => inR(t, r)), prev = c.txs.filter(t => inR(t, pr));
+  const sum = (arr, ty) => arr.filter(t => t.type === ty).reduce((a, t) => a + t.amount, 0);
+  const total = sum(cur, kind), prevTotal = sum(prev, kind);
+  const exp = sum(cur, 'expense'), inc = sum(cur, 'income');
+  const span = Math.max(1, diffDays(r.a, r.b < TODAY ? r.b : TODAY) + 1);
+  const delta = prevTotal ? Math.round((total - prevTotal) / prevTotal * 100) : null;
+  const good = kind === 'expense' ? delta < 0 : delta > 0;
+  const accent = kind === 'expense' ? 'var(--red)' : 'var(--green)';
+
+  const byCat = {};
+  cur.filter(t => t.type === kind).forEach(t => (byCat[t.cat] = (byCat[t.cat] || 0) + t.amount));
+  const segs = Object.entries(byCat).sort((x, y) => y[1] - x[1]).map(([id, v]) => ({ id, v, cat: catOf(id) }));
+
+  let bars = [];
+  if (mode === 'year') bars = M_NOM.map((n, i) => { const pre = `${r.a.slice(0, 4)}-${pad2(i + 1)}`; return { label: n[0].toUpperCase(), full: cap(n), v: cur.filter(t => t.type === kind && t.date.startsWith(pre)).reduce((a, t) => a + t.amount, 0), future: `${pre}-01` > TODAY }; });
+  else { for (let d = parse(r.a); iso(d) <= r.b; d = addDays(d, 1)) { const ds = iso(d); bars.push({ label: mode === 'week' ? WD[d.getDay()] : (d.getDate() === 1 || d.getDate() % 7 === 0 ? d.getDate() : ''), full: dayTitle(ds), v: cur.filter(t => t.type === kind && t.date === ds).reduce((a, t) => a + t.amount, 0), future: ds > TODAY }); } }
+  const past = bars.filter(x => !x.future);
+  const maxRaw = Math.max(1, ...bars.map(x => x.v));
+  const step = Math.pow(10, Math.floor(Math.log10(maxRaw)));
+  const maxB = Math.ceil(maxRaw / step) * step;
+  const avg = past.length ? past.reduce((a, x) => a + x.v, 0) / past.length : 0;
+  const keyR = mode + off + kind;
+  const canRecap = mode === 'month' && r.k < c.cur && c.per.has(r.k);
+
+  return html`<${Screen} title="Статистика" right=${canRecap && html`<button class="btn btn--plain is-bold" onClick=${() => ui.recap(r.k)}>Итоги</button>`}>
+    <div class="col" style="gap:14px">
+      <${Seg} items=${[['week', 'Неделя'], ['month', 'Месяц'], ['year', 'Год']]} value=${mode} onChange=${v => { setMode(v); setOff(0); setSelBar(null); }} />
+      <div class="period">
+        <button class="circle-btn circle-btn--tint" aria-label="Раньше" onClick=${() => { setOff(o => o - 1); setSelBar(null); }}><${Icon} n="chevron_left" /></button>
+        <b>${r.label}</b>
+        <button class="circle-btn circle-btn--tint" aria-label="Позже" style=${off >= 0 ? 'opacity:.3' : ''} onClick=${() => { if (off < 0) { setOff(o => o + 1); setSelBar(null); } }}><${Icon} n="chevron_right" /></button>
+      </div>
+    </div>
+    <div class="split">
+      <div class="col">
+        <div class="card">
+          <${Seg} items=${[['expense', 'Расходы'], ['income', 'Доходы']]} value=${kind} onChange=${v => { setKind(v); setSelCat(null); setSelBar(null); }} />
+          <div key=${'m' + keyR + selBar}>
+            <div class="metric__label">${selBar != null ? bars[selBar].full : kind === 'expense' ? 'Потрачено' : 'Получено'}</div>
+            <div class="metric__v">${selBar != null ? fmt(bars[selBar].v) : html`<${Count} v=${total} />`}<small>₸</small></div>
+            <div class="metric__sub">${selBar != null ? 'Нажмите ещё раз, чтобы сбросить' : `Среднее: ${money(avg)} в ${mode === 'year' ? 'месяц' : 'день'}`}</div>
+          </div>
+          <div class=${'chart' + (selBar != null ? ' has-sel' : '')} key=${'b' + keyR}>
+            ${[1, .5, 0].map(f => html`<div class="chart__grid" style=${`bottom:${f * 100}%`}><span>${f ? kfmt(maxB * f) : '0'}</span></div>`)}
+            ${avg > 0 && html`<div class="chart__avg" style=${`bottom:${avg / maxB * 100}%;--c:${accent}`}></div>`}
+            ${bars.map((x, i) => html`<button class=${'bar' + (selBar === i ? ' is-sel' : '') + (x.future ? ' is-future' : '')} style=${`--i:${i};--h:${x.v / maxB};--c:${accent}`} onClick=${() => { buzz(4); setSelBar(selBar === i ? null : i); }} aria-label=${x.full + ': ' + money(x.v)}><i></i></button>`)}
+          </div>
+          <div class="chart__labels">${bars.map(x => html`<span>${x.label}</span>`)}</div>
+        </div>
+        <div class="group">
+          <div class="cell"><span class="cell__main">Расход</span><span class="cell__value">${money(exp)}</span></div>
+          <div class="cell"><span class="cell__main">Доход</span><span class="cell__value">${money(inc)}</span></div>
+          <div class="cell"><span class="cell__main">${kind === 'expense' ? 'В среднем за день' : 'Отложено'}</span><span class="cell__value">${kind === 'expense' ? money(exp / span) : money(Math.max(0, inc - exp)) + (inc ? ` · ${Math.round(Math.max(0, inc - exp) / inc * 100)}%` : '')}</span></div>
+          <div class="cell"><span class="cell__main">Против прошлого периода</span><span class=${'cell__value ' + (delta == null ? '' : good ? 'delta-good' : 'delta-bad')}>${delta == null ? 'нет данных' : `${delta > 0 ? '+' : ''}${delta}%`}</span></div>
+        </div>
+      </div>
+      <div class="section">
+        <div class="section__header"><span>По категориям</span></div>
+        ${segs.length ? html`<div class="group legend" key=${'l' + keyR}>
+          <div class="cell" style="display:block"><div class=${'stackbar' + (selCat ? ' has-sel' : '')}>${segs.map((g, i) => html`<i class=${selCat === g.id ? 'is-sel' : ''} style=${`--p:${g.v / total};--c:var(--${g.cat.color});--i:${i}`}></i>`)}</div></div>
+          ${segs.map(g => html`<button class=${'cell cell--icon' + (selCat && selCat !== g.id ? ' is-dim' : '')} onClick=${() => { buzz(4); setSelCat(selCat === g.id ? null : g.id); }}>
+            <${Sq} c=${g.cat} />
+            <span class="cell__main"><span class="cell__title">${g.cat.name}</span></span>
+            <span class="cell__value">${Math.round(g.v / total * 100)}%</span>
+            <span class="amt" style="min-width:92px;text-align:right">${fmt(g.v)} ₸</span>
+          </button>`)}
+        </div>` : html`<div class="group"><div class="cell"><span class="secondary">За этот период записей нет</span></div></div>`}
+      </div>
+    </div>
+  <//>`;
+}
+
+/* ================= награды ================= */
+function Awards({ s, c, res }) {
+  const [filter, setFilter] = useState('all');
+  const got = ACH.filter(a => res[a.id].tier || res[a.id].count).length;
+  const streak = streakNow(c);
+  const pct = got / ACH.length;
+  const has = a => res[a.id].tier || res[a.id].count;
+  const show = a => filter === 'all' || (filter === 'got' ? has(a) : !has(a));
+  const C = +(2 * Math.PI * 42).toFixed(1);
+  let idx = 0;
+  return html`<${Screen} title="Награды">
+    <div class="card award-sum">
+      <div class="big-ring"><svg viewBox="0 0 96 96"><circle cx="48" cy="48" r="42" style="stroke:var(--fill-3)" /><circle cx="48" cy="48" r="42" stroke-linecap="round" stroke-dasharray=${C} style=${`stroke:var(--orange);stroke-dashoffset:${C * (1 - pct)};--len:${C};animation:ring-in 1.2s var(--ease-out) both`} /></svg><b>${got}<small>из ${ACH.length}</small></b></div>
+      <div style="display:grid;gap:4px">
+        <b class="t-headline">${pct < .25 ? 'Коллекция только начинается' : pct < .8 ? 'Хорошая коллекция' : 'Почти всё собрано'}</b>
+        <span class="secondary t-subhead">Награды выдаются автоматически, когда вы ведёте учёт и экономите.</span>
+        <span class="t-subhead" style="color:var(--orange);font-weight:600;display:flex;align-items:center;gap:4px"><${Icon} n="local_fire_department" fill style="font-size:18px" />${streak} ${plural(streak, 'день', 'дня', 'дней')} подряд</span>
+      </div>
+    </div>
+    <${Seg} items=${[['all', 'Все'], ['got', 'Получены'], ['todo', 'В процессе']]} value=${filter} onChange=${setFilter} />
+    ${GROUPS.map(([g, title]) => {
+      const list = ACH.filter(a => a.g === g && show(a));
+      if (!list.length) return null;
+      return html`<div class="section" key=${g + filter}>
+        <div class="section__header"><span>${title}</span><span>${list.filter(has).length} из ${list.length}</span></div>
+        <div class="group badges stagger">${list.map(a => {
+          const r = res[a.id], tier = r.tier, hidden = a.hidden && !tier;
+          return html`<button class="badge-cell" style=${'--i:' + idx++} onClick=${() => ui.sheet({ kind: 'ach', id: a.id, auto: true })}>
+            <${Badge} a=${a} r=${r} />
+            <b>${hidden ? 'Секрет' : a.n}</b>
+            <small>${hidden ? 'откройте случайно' : tier ? (a.monthly ? `×${r.count}` : cap(TIER_NAMES[tierClass(a, tier)])) : progressText(a, r)}</small>
+          </button>`;
+        })}</div>
+      </div>`;
+    })}
+  <//>`;
+}
+function AchSheet({ id, res, close }) {
+  const a = ACH_BY[id], r = res[id], s = store.s;
+  const hidden = a.hidden && !r.tier;
+  const meta = s.meta.ach[id];
+  const ref = useRef();
+  const tilt = e => { const el = ref.current; if (!el) return; const b = el.getBoundingClientRect(); const x = (e.clientX - b.left) / b.width - .5, y = (e.clientY - b.top) / b.height - .5; el.style.transform = `rotateY(${x * 36}deg) rotateX(${-y * 36}deg)`; };
+  const inShow = s.profile.showcase.includes(id);
+  const toggleShow = () => store.set(st => { const sc = st.profile.showcase.filter(x => x !== id); if (!inShow) sc.unshift(id); return { profile: { ...st.profile, showcase: sc.slice(0, 3) } }; });
+  return html`<${SheetNav} title="" onCancel=${close} cancel="Закрыть" />
+    <div class="sheet__body">
+      <div class="ach-hero" onPointerMove=${tilt} onPointerLeave=${() => ref.current && (ref.current.style.transform = '')}>
+        <div ref=${ref} style="transition:transform 200ms ease-out"><${Badge} a=${a} r=${r} size=${140} /></div>
+        <h2 class="t-title2">${hidden ? 'Секретная награда' : a.n}</h2>
+        <p class="secondary">${hidden ? 'Условие откроется вместе с наградой. Попробуйте что-нибудь необычное.' : a.d}</p>
+      </div>
+      <div class="group">
+        ${(r.tier || r.count) && meta?.at ? html`<div class="cell"><span class="cell__main">Получена</span><span class="cell__value">${dateLong(iso(new Date(meta.at)))}</span></div>` : ''}
+        ${!hidden && !a.monthly && a.tiers.length > 1 ? a.tiers.map((t, i) => html`<div class="cell"><${Icon} n=${r.value >= t ? 'check_circle' : 'radio_button_unchecked'} fill=${r.value >= t} style=${'color:' + (r.value >= t ? 'var(--green)' : 'var(--label-3)')} /><span class="cell__main">${cap(TIER_NAMES[tierClass(a, i + 1)])}</span><span class="cell__value">${a.unit === '₸' ? kfmt(t) : fmt(t)} ${a.unit || ''}</span></div>`) : ''}
+        ${!hidden && html`<div class="cell"><span class="cell__main">Прогресс</span><span class="cell__value">${progressText(a, r)}</span></div>`}
+        ${a.monthly && r.count ? html`<div class="cell"><span class="cell__main">Месяцы</span><span class="cell__value">${r.periods.map(k => M_NOM[k % 12]).join(', ')}</span></div>` : ''}
+      </div>
+      ${(r.tier || r.count) ? html`<button class="btn btn--tinted" onClick=${toggleShow}>${inShow ? 'Убрать из витрины' : 'Показать в профиле'}</button>` : ''}
+    </div>`;
+}
+
+/* ================= новая награда ================= */
+function Confetti() {
+  const ref = useRef();
+  useEffect(() => {
+    if (store.s.settings.motion === 'reduced' || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cv = ref.current, ctx = cv.getContext('2d'), dpr = devicePixelRatio || 1;
+    const W = cv.width = cv.offsetWidth * dpr, H = cv.height = cv.offsetHeight * dpr;
+    const st = getComputedStyle(document.documentElement);
+    const cols = ['--orange', '--yellow', '--blue', '--green', '--pink', '--purple'].map(v => st.getPropertyValue(v).trim());
+    const P = [...Array(120)].map(() => ({ x: W / 2, y: H * .3, vx: (Math.random() - .5) * 15 * dpr, vy: (-Math.random() * 13 - 4) * dpr, r: (Math.random() * 4 + 3) * dpr, c: cols[Math.floor(Math.random() * cols.length)], a: Math.random() * 6, va: (Math.random() - .5) * .4, sq: Math.random() < .5 }));
+    let raf, t = 0;
+    const step = () => {
+      t++; ctx.clearRect(0, 0, W, H);
+      for (const p of P) { p.vy += .34 * dpr; p.vx *= .985; p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.globalAlpha = Math.max(0, 1 - t / 140); if (p.sq) ctx.fillRect(-p.r, -p.r / 2, p.r * 2, p.r); else { ctx.beginPath(); ctx.arc(0, 0, p.r / 1.4, 0, 7); ctx.fill(); } ctx.restore(); }
+      if (t < 140) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return html`<canvas ref=${ref}></canvas>`;
+}
+function Unlock({ ids, res, onDone }) {
+  const [i, setI] = useState(0), [closing, setClosing] = useState(false);
+  const a = ACH_BY[ids[i]], r = res[a.id];
+  useEffect(() => { buzz([20, 60, 30, 60, 50]); }, [i]);
+  const next = () => { if (i < ids.length - 1) setI(i + 1); else { setClosing(true); setTimeout(onDone, 320); } };
+  const tierName = a.monthly ? (r.count > 1 ? `×${r.count}` : '') : a.tiers.length > 1 ? TIER_NAMES[tierClass(a, r.tier)] : '';
+  return html`<div class=${'unlock' + (closing ? ' is-closing' : '')} onClick=${e => e.target === e.currentTarget && next()}>
+    <div class="unlock__card" key=${a.id}>
+      <${Confetti} />
+      ${a.taxi && html`<span class="ms unlock__taxi" aria-hidden="true">local_taxi</span>`}
+      <${Badge} a=${a} r=${{ ...r, tier: r.tier || 1, next: null }} size=${120} />
+      <span class="t-footnote" style="color:var(--orange);font-weight:600;text-transform:uppercase">Новая награда${tierName ? ' · ' + tierName : ''}</span>
+      <h2 class="t-title2">${a.n}</h2>
+      <p>${a.d}</p>
+      <button class="btn btn--filled btn--block" style="margin-top:10px" onClick=${next}>${i < ids.length - 1 ? `Дальше (ещё ${ids.length - 1 - i})` : 'Отлично'}</button>
+    </div>
+  </div>`;
+}
+
+/* ================= итоги месяца ================= */
+function recapData(s, c, k) {
+  const p = c.per.get(k), prev = c.per.get(k - 1);
+  const [a, b] = pRange(k, c.ms);
+  const txs = c.txs.filter(t => t.date >= a && t.date <= b);
+  const cats = Object.entries(p.byCat).sort((x, y) => y[1] - x[1]).map(([id, v]) => ({ cat: catOf(id), v }));
+  const dayTot = {};
+  txs.filter(t => t.type === 'expense' && t.cat !== 'home').forEach(t => (dayTot[t.date] = (dayTot[t.date] || 0) + t.amount));
+  const topDay = Object.entries(dayTot).sort((x, y) => y[1] - x[1])[0];
+  const topDayItems = topDay ? txs.filter(t => t.date === topDay[0] && t.type === 'expense').sort((x, y) => y.amount - x.amount).slice(0, 3) : [];
+  const { res } = evaluate(s);
+  const badges = ACH.filter(x => x.monthly && res[x.id].periods.includes(k)).map(x => [x, res[x.id]]);
+  const taxi = p.byCat.taxi || 0, taxiPrev = prev?.byCat.taxi || 0;
+  const ch = s.challenges.find(x => x.cat === 'taxi');
+  const instPaid = txs.filter(t => t.inst).reduce((x, t) => x + t.amount, 0);
+  const deps = (s.deposits || []).filter(d => d.start <= b);
+  const depGrow = deps.reduce((x, d) => x + depState(d, c.txs, b).bal - depState(d, c.txs, iso(addDays(parse(a), -1))).bal, 0);
+  const depInt = deps.reduce((x, d) => x + depState(d, c.txs, b).interest - depState(d, c.txs, iso(addDays(parse(a), -1))).interest, 0);
+  return { k, p, prev, cats, topDay, topDayItems, badges, taxi, taxiPrev, ch, instPaid, depGrow, depInt, n: txs.length, days: diffDays(a, b) + 1 };
+}
+const Big = ({ v }) => { const x = useCount(v, 1400, true); return html`${fmt(x)} ₸`; };
+function Recap({ k, onClose }) {
+  const d = useMemo(() => recapData(store.s, buildCtx(store.s), k), [k]);
+  const [i, setI] = useState(0), [paused, setPaused] = useState(false);
+  const m = k % 12, saved = d.p.inc - d.p.exp, rate = d.p.inc ? Math.round(saved / d.p.inc * 100) : 0;
+  const slides = [
+    { tone: 'indigo', body: html`<span class="story__eyebrow" style="--i:0">Итоги месяца</span>
+        <div class="story__title" style="--i:1">${M_NOM[m].split('').map((ch, l) => html`<span style=${'--l:' + l}>${ch}</span>`)}</div>
+        <p class="story__txt" style="--i:2"><b>${d.days} ${plural(d.days, 'день', 'дня', 'дней')}</b> и <b>${d.n} ${plural(d.n, 'запись', 'записи', 'записей')}</b>. Смотрим, куда ушли деньги.</p>` },
+    { tone: 'pink', body: html`<span class="story__eyebrow" style="--i:0">Потрачено в ${M_PREP[m]}</span>
+        <div class="story__big" style="--i:1"><${Big} v=${d.p.exp} /></div>
+        <p class="story__txt" style="--i:2">Заработано <b>${money(d.p.inc)}</b>.</p>
+        <div class="story__rows" style="--i:3"><div class="story__row"><div><span>Расход от дохода</span><b>${d.p.inc ? Math.round(d.p.exp / d.p.inc * 100) : 100}%</b></div><div class="progress"><i style=${`--p:${d.p.inc ? Math.min(1, d.p.exp / d.p.inc) : 1};--delay:500ms`}></i></div></div></div>` },
+    d.cats[0] && { tone: 'orange', body: html`<span class="story__eyebrow" style="--i:0">Больше всего ушло на</span>
+        <div class="story__icon" style="--i:1"><span class="ms">${d.cats[0].cat.icon}</span></div>
+        <div class="story__big" style="--i:2;font-size:clamp(34px,10vw,48px)">${d.cats[0].cat.name}</div>
+        <p class="story__txt" style="--i:3"><b>${money(d.cats[0].v)}</b>, это ${Math.round(d.cats[0].v / d.p.exp * 100)}% всех трат.</p>
+        <div class="story__rows" style="--i:4">${d.cats.slice(1, 4).map((x, j) => html`<div class="story__row"><div><span>${x.cat.name}</span><b class="num">${fmt(x.v)}</b></div><div class="progress"><i style=${`--p:${x.v / d.cats[0].v};--delay:${600 + j * 120}ms`}></i></div></div>`)}</div>` },
+    d.topDay && { tone: 'teal', body: html`<span class="story__eyebrow" style="--i:0">Самый дорогой день</span>
+        <div class="story__big" style="--i:1">${dateLong(d.topDay[0])}</div>
+        <p class="story__txt" style="--i:2">${cap(WD_LONG[parse(d.topDay[0]).getDay()])}, <b>${money(d.topDay[1])}</b> без учёта аренды.</p>
+        <div class="story__rows" style="--i:3">${d.topDayItems.map(t => html`<div class="story__row"><div><span>${t.note || catOf(t.cat).name}</span><b class="num">${fmt(t.amount)}</b></div></div>`)}</div>` },
+    d.prev && { tone: d.p.exp <= d.prev.exp ? 'green' : 'pink', body: html`<span class="story__eyebrow" style="--i:0">По сравнению с ${M_INS[(k - 1) % 12]}</span>
+        <div class="story__big" style="--i:1">${d.p.exp <= d.prev.exp ? '−' : '+'}${Math.abs(Math.round((d.p.exp - d.prev.exp) / d.prev.exp * 100))}%</div>
+        <p class="story__txt" style="--i:2">${d.p.exp <= d.prev.exp ? html`Вы потратили на <b>${money(d.prev.exp - d.p.exp)}</b> меньше.` : html`Трат стало больше на <b>${money(d.p.exp - d.prev.exp)}</b>.`}</p>
+        <div class="story__cmp" style="--i:3">
+          <div><i style=${`--h:${d.prev.exp / Math.max(d.prev.exp, d.p.exp)};--d:500ms`}></i><span>${cap(M_NOM[(k - 1) % 12])}<br /><b class="num">${kfmt(d.prev.exp)}</b></span></div>
+          <div><i style=${`--h:${d.p.exp / Math.max(d.prev.exp, d.p.exp)};--d:700ms`}></i><span>${cap(M_NOM[m])}<br /><b class="num">${kfmt(d.p.exp)}</b></span></div>
+        </div>` },
+    (d.taxi || d.taxiPrev) && { tone: 'orange', body: html`<span class="story__eyebrow" style="--i:0">Такси</span>
+        <div class="story__road" style="--i:1"><span class="ms">local_taxi</span></div>
+        <div class="story__big" style="--i:2"><${Big} v=${d.taxi} /></div>
+        <p class="story__txt" style="--i:3">${d.taxiPrev ? (d.taxi < d.taxiPrev ? html`На <b>${Math.round((1 - d.taxi / d.taxiPrev) * 100)}% меньше</b>, чем в ${M_PREP[(k - 1) % 12]}.` : html`На <b>${Math.round((d.taxi / d.taxiPrev - 1) * 100)}% больше</b>, чем в ${M_PREP[(k - 1) % 12]}.`) : 'Первый месяц с такси в учёте.'}</p>
+        ${d.ch && html`<p class="story__txt" style="--i:4;font-size:17px">${d.taxi <= d.ch.limit ? 'Уложились в лимит ' : 'Лимит превышен: '}${money(d.ch.limit)}</p>`}` },
+    (d.instPaid || d.depGrow) && { tone: 'green', body: html`<span class="story__eyebrow" style="--i:0">Рассрочки и депозит</span>
+        <div class="story__icon" style="--i:1"><span class="ms">account_balance</span></div>
+        <div class="story__big" style="--i:2">+<${Big} v=${Math.round(d.depGrow)} /></div>
+        <p class="story__txt" style="--i:3">Депозит вырос, из них <b>${money(d.depInt)}</b> — проценты, которые вы не заработали руками.</p>
+        ${d.instPaid > 0 && html`<p class="story__txt" style="--i:4;font-size:17px">По рассрочкам выплачено ${money(d.instPaid)}.</p>`}` },
+    d.badges.length && { tone: 'indigo', body: html`<span class="story__eyebrow" style="--i:0">Награды за ${M_NOM[m]}</span>
+        <div class="story__big" style="--i:1">${d.badges.length} ${plural(d.badges.length, 'награда', 'награды', 'наград')}</div>
+        <div class="story__badges" style="--i:2">${d.badges.map(([a, r], j) => html`<div style=${`--i:${j};display:grid;justify-items:center;gap:6px;width:84px;text-align:center;font-size:13px`}><${Badge} a=${a} r=${r} size=${68} /><span>${a.n}</span></div>`)}</div>` },
+    { tone: saved > 0 ? 'green' : 'pink', body: html`<span class="story__eyebrow" style="--i:0">${saved > 0 ? 'Отложено' : 'Ушли в минус на'}</span>
+        <div class="story__big" style="--i:1"><${Big} v=${Math.abs(saved)} /></div>
+        <p class="story__txt" style="--i:2">${saved > 0 ? html`Это <b>${rate}% дохода</b>. ${rate >= 20 ? 'Отличный месяц.' : 'Хорошая база на следующий месяц.'}` : 'Попробуйте челлендж на самую большую категорию.'}</p>
+        <button class="btn" style="--i:3" onClick=${e => { e.stopPropagation(); onClose(); }}>Готово</button>` },
+  ].filter(Boolean);
+  const last = slides.length - 1;
+  const go = di => { buzz(4); setI(x => { const n = x + di; if (n > last) { onClose(); return x; } return Math.max(0, n); }); };
+  const hold = useRef(0);
+  const cur = slides[i];
+  return html`<div class="recap">
+    <div class=${'story story--' + cur.tone + (paused ? ' is-paused' : '')}>
+      <div class="story__bars">${slides.map((_, j) => html`<span class=${j < i ? 'is-done' : j === i ? 'is-cur' : ''}><i key=${'b' + i + j} onAnimationEnd=${() => j === i && i < last && go(1)}></i></span>`)}</div>
+      <button class="circle-btn story__close" aria-label="Закрыть итоги" onClick=${onClose}><${Icon} n="close" /></button>
+      <div class="story__body" key=${'s' + i}>${cur.body}</div>
+      <div class="story__tap" onPointerDown=${() => { hold.current = Date.now(); setPaused(true); }} onPointerUp=${() => setPaused(false)} onPointerLeave=${() => setPaused(false)}>
+        <button aria-label="Назад" onClick=${() => Date.now() - hold.current < 250 && go(-1)}></button>
+        <button aria-label="Дальше" onClick=${() => Date.now() - hold.current < 250 && go(1)}></button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= настройки и профиль ================= */
+const download = (name, text, type) => { try { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); } catch (e) {} };
+const backupJSON = s => JSON.stringify({ app: 'grosh', v: s.v, exportedAt: new Date().toISOString(), profile: s.profile, settings: s.settings, categories: s.categories, challenges: s.challenges, tx: s.tx, meta: { ...s.meta } }, null, 2);
+const markBackup = () => mutate(st => ({ meta: { ...st.meta, backups: (st.meta.backups || 0) + 1, lastBackupAt: Date.now() } }));
+const SqI = ({ icon, color }) => html`<span class="sq" style=${`--c:var(--${color})`}><${Icon} n=${icon} /></span>`;
+
+function Settings({ s, onClose }) {
+  const set = patch => store.set(st => ({ settings: { ...st.settings, ...patch } }));
+  const fileRef = useRef();
+  const onFile = e => {
+    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { try { const data = JSON.parse(r.result); if (data.app !== 'grosh' || !Array.isArray(data.tx)) throw 0; askImport(data); } catch (err) { ui.toast('Это не бэкап Гроша. Выберите файл из «Скачать бэкап».', null, 'error'); } };
+    r.readAsText(f);
+  };
+  const csv = () => {
+    const rows = [['Дата', 'Тип', 'Категория', 'Сумма', 'Заметка'], ...s.tx.filter(t => !t.deletedAt).sort((a, b) => a.date.localeCompare(b.date)).map(t => [t.date, t.type === 'income' ? 'Доход' : 'Расход', catOf(t.cat).name, t.amount, (t.note || '').replace(/[;\n]/g, ' ')])];
+    download(`grosh-${TODAY}.csv`, '﻿' + rows.map(r => r.join(';')).join('\n'), 'text/csv');
+    ui.toast('CSV сохранён');
+  };
+  const reset = () => ui.dialog({
+    title: 'Стереть все данные?', msg: 'Записи, челленджи и награды удалятся с этого устройства. Отменить это нельзя.',
+    actions: [{ label: 'Отмена', style: 'bold' }, { label: 'Стереть', style: 'destructive', run: () => { store.set(st => ({ tx: [], challenges: [], meta: { ...st.meta, backups: 0, lastBackupAt: null, calcUsed: false, recapSeen: null, ach: {}, demo: false }, profile: { ...st.profile, showcase: [], since: TODAY } })); ui.toast('Все данные стёрты'); } }],
+  });
+  const signOut = () => ui.dialog({
+    title: 'Выйти из аккаунта?', msg: 'Данные останутся на этом устройстве, синхронизация остановится.',
+    actions: [{ label: 'Отмена' }, { label: 'Выйти', style: 'destructive', run: () => { store.set(st => ({ profile: { ...st.profile, account: null } })); ui.toast('Вы вышли из аккаунта'); } }],
+  });
+  const acc = s.profile.account;
+  const last = s.meta.lastBackupAt ? dateLong(iso(new Date(s.meta.lastBackupAt))) : 'не было';
+  const setMs = d => mutate(st => ({ settings: { ...st.settings, monthStart: Math.min(28, Math.max(1, st.settings.monthStart + d)) } }));
+  return html`<${Page} title="Настройки" onClose=${onClose}>
+    <div class="group"><button class="cell" onClick=${() => ui.page('profile')} style="min-height:76px">
+      <span class="avatar avatar--lg" style=${`--c:var(--${s.profile.color})`}>${initials(s.profile.name)}</span>
+      <span class="cell__main"><span class="t-title3">${s.profile.name}</span><span class="cell__sub">${acc ? (acc.email || 'Вход через ' + acc.provider) : 'Профиль и витрина наград'}</span></span><${Chev} />
+    </button></div>
+    ${acc ? html`<div class="section"><div class="section__header">Аккаунт</div><div class="group">
+        <div class="cell cell--icon"><${SqI} icon="sync" color="green" /><span class="cell__main">Синхронизация</span><span class="cell__value">Включена</span></div>
+        <button class="cell cell--destructive" onClick=${signOut}>Выйти</button>
+      </div><div class="section__footer">Прототип: сервер ещё не подключён, синхронизация имитируется.</div></div>`
+      : html`<div class="group"><button class="cell cell--icon" onClick=${() => ui.auth('welcome')}><${SqI} icon="cloud_sync" color="blue" /><span class="cell__main"><span>Войти в Грош</span><span class="cell__sub">Синхронизация между устройствами</span></span><${Chev} /></button></div>`}
+    <div class="section"><div class="section__header">Оформление</div><div class="group">
+      <div class="cell cell--icon"><${SqI} icon="contrast" color="indigo" /><span class="cell__main">Тема</span><label class="select"><select id="set-theme" aria-label="Тема" value=${s.settings.theme} onChange=${e => set({ theme: e.target.value })}><option value="system">Как в системе</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></label></div>
+      <div class="cell cell--icon"><${SqI} icon="animation" color="teal" /><span class="cell__main">Анимации</span><label class="select"><select id="set-motion" aria-label="Анимации" value=${s.settings.motion} onChange=${e => set({ motion: e.target.value })}><option value="full">Все</option><option value="reduced">Меньше</option></select></label></div>
+      <div class="cell cell--icon"><${SqI} icon="vibration" color="pink" /><span class="cell__main">Вибрация</span><${Switch} on=${s.settings.haptics} onChange=${v => set({ haptics: v })} label="Вибрация" /></div>
+    </div></div>
+    <div class="section"><div class="section__header">Учёт</div><div class="group">
+      <div class="cell cell--icon"><${SqI} icon="calendar_month" color="red" /><span class="cell__main">Месяц начинается</span>
+        <div class="stepper"><button aria-label="Раньше" onClick=${() => setMs(-1)}><${Icon} n="remove" /></button><b>${s.settings.monthStart}</b><button aria-label="Позже" onClick=${() => setMs(1)}><${Icon} n="add" /></button></div></div>
+      <div class="cell cell--icon"><${SqI} icon="event" color="orange" /><span class="cell__main">Первый день недели</span><label class="select"><select id="week-start" aria-label="Первый день недели" value=${String(s.settings.weekStart)} onChange=${e => set({ weekStart: +e.target.value })}><option value="1">Понедельник</option><option value="0">Воскресенье</option><option value="6">Суббота</option></select></label></div>
+      <button class="cell cell--icon" onClick=${() => ui.page('categories')}><${SqI} icon="category" color="green" /><span class="cell__main">Категории</span><span class="cell__value">${s.categories.filter(c => !c.archived && c.type !== 'transfer').length}</span><${Chev} /></button>
+      <button class="cell cell--icon" onClick=${() => ui.sheet({ kind: 'challenge' })}><${SqI} icon="flag" color="yellow" /><span class="cell__main">Новый челлендж</span><span class="cell__value">${s.challenges.length}</span><${Chev} /></button>
+    </div><div class="section__footer">Если зарплата приходит 10-го, поставьте 10 — статистика и итоги будут считаться с 10-го по 9-е.</div></div>
+    <div class="section"><div class="section__header">Данные</div><div class="group">
+      <button class="cell cell--icon" onClick=${() => ui.sheet({ kind: 'backup', auto: true })}><${SqI} icon="download" color="blue" /><span class="cell__main">Скачать бэкап</span><span class="cell__value">${last}</span><${Chev} /></button>
+      <button class="cell cell--icon" onClick=${() => fileRef.current.click()}><${SqI} icon="upload" color="blue" /><span class="cell__main">Загрузить бэкап</span><${Chev} /></button>
+      <button class="cell cell--icon" onClick=${csv}><${SqI} icon="table_view" color="green" /><span class="cell__main">Экспорт в CSV</span><${Chev} /></button>
+    </div><div class="section__footer">Данные хранятся только на этом устройстве. Бэкап — это файл JSON, его можно загрузить обратно на любом устройстве.</div></div>
+    <div class="section"><div class="group"><button class="cell cell--destructive" onClick=${reset}>Стереть все данные</button></div>
+      <div class="section__footer">Грош 0.1 · прототип · схема данных v${s.v}${s.meta.demo ? ' · заполнено примерами' : ''}</div></div>
+    <input type="file" id="import-file" accept="application/json,.json" ref=${fileRef} onChange=${onFile} hidden />
+  <//>`;
+}
+function Categories({ s, onClose }) {
+  const list = type => s.categories.filter(c => c.type === type).sort((a, b) => a.order - b.order);
+  return html`<${Page} title="Категории" onClose=${onClose}>
+    ${[['expense', 'Расходы'], ['income', 'Доходы']].map(([t, title]) => html`<div class="section"><div class="section__header">${title}</div><div class="group">
+      ${list(t).map(c => html`<button class="cell cell--icon" style=${c.archived ? 'opacity:.5' : ''} onClick=${() => ui.sheet({ kind: 'category', cat: c, auto: true })}><${Sq} c=${c} /><span class="cell__main">${c.name}</span>${c.archived ? html`<span class="cell__value">в архиве</span>` : ''}<${Chev} /></button>`)}
+      <button class="cell more" onClick=${() => ui.sheet({ kind: 'category', cat: { type: t }, auto: true })}>Новая категория</button>
+    </div></div>`)}
+  <//>`;
+}
+function Profile({ s, c, res, onClose }) {
+  const got = ACH.filter(a => res[a.id].tier || res[a.id].count).length;
+  const days = diffDays(c.first, TODAY) + 1;
+  const streak = streakNow(c);
+  const setName = v => store.set(st => ({ profile: { ...st.profile, name: v.slice(0, 24) || 'Без имени' } }));
+  return html`<${Page} title="Профиль" onClose=${onClose}>
+    <div class="profile-head">
+      <button class="avatar avatar--xl" style=${`--c:var(--${s.profile.color})`} onClick=${() => ui.sheet({ kind: 'avatar', auto: true })} aria-label="Сменить цвет">${initials(s.profile.name)}</button>
+      <input class="name-input" id="profile-name" value=${s.profile.name} onChange=${e => setName(e.target.value.trim())} aria-label="Имя" />
+      <span class="secondary t-subhead">Ведёте учёт с ${dateLong(c.first)} ${parse(c.first).getFullYear()}</span>
+    </div>
+    <div class="group">
+      <div class="cell"><span class="cell__main">Дней с Грошем</span><span class="cell__value"><${Count} v=${days} /></span></div>
+      <div class="cell"><span class="cell__main">Записей</span><span class="cell__value"><${Count} v=${c.txs.length} /></span></div>
+      <div class="cell"><span class="cell__main">Наград</span><span class="cell__value">${got} из ${ACH.length}</span></div>
+      <div class="cell"><span class="cell__main">Серия</span><span class="cell__value">${streak} ${plural(streak, 'день', 'дня', 'дней')} подряд</span></div>
+    </div>
+    <div class="section"><div class="section__header">Витрина</div>
+      <div class="group showcase">${[0, 1, 2].map(i => { const id = s.profile.showcase[i]; const a = id && ACH_BY[id];
+        return a && (res[id].tier || res[id].count) ? html`<button class="slot" onClick=${() => ui.sheet({ kind: 'showcase', slot: i, auto: true })}><${Badge} a=${a} r=${res[id]} size=${64} /><b>${a.n}</b></button>`
+          : html`<button class="slot slot--empty" onClick=${() => ui.sheet({ kind: 'showcase', slot: i, auto: true })}><span class="ring-empty"><${Icon} n="add" /></span><span>Выбрать</span></button>`; })}</div>
+      </div>
+    ${s.profile.account ? html`<div class="group"><div class="cell cell--icon"><${SqI} icon="cloud_sync" color="green" /><span class="cell__main"><span>${s.profile.account.email || 'Вход через ' + s.profile.account.provider}</span><span class="cell__sub">Синхронизация включена</span></span></div></div>`
+      : html`<button class="btn btn--tinted" onClick=${() => ui.auth('welcome')}>Войти или создать аккаунт</button>`}
+  <//>`;
+}
+
+/* ================= рассрочка и депозит ================= */
+const digitsOnly = v => { const d = String(v).replace(/\D/g, '').slice(0, 10); return d ? fmt(+d) : ''; };
+const numOf = v => +String(v).replace(/\D/g, '') || 0;
+function InstSheet({ it, close }) {
+  const isNew = !it;
+  const [name, setName] = useState(it?.name || '');
+  const [total, setTotal] = useState(it ? fmt(it.total) : '');
+  const [months, setMonths] = useState(it?.months || 12);
+  const [first, setFirst] = useState(it?.first || TODAY);
+  const [pb, setPb] = useState(it?.paidBefore || 0);
+  const tot = numOf(total);
+  const st = it ? instState(it, store.s.tx.filter(t => !t.deletedAt)) : null;
+  const save = () => {
+    if (!name.trim()) return ui.toast('Введите название покупки', null, 'error');
+    if (tot < 1000) return ui.toast('Сумма от 1 000 ₸', null, 'error');
+    close();
+    const data = { name: name.trim(), total: tot, months, first, paidBefore: Math.min(pb, months) };
+    mutate(s0 => { const list = isNew ? [...(s0.installments || []), { id: uid(), createdAt: Date.now(), ...data }] : s0.installments.map(x => (x.id === it.id ? { ...x, ...data } : x)); return { installments: list, tx: [...s0.tx, ...instDue({ ...s0, installments: list })] }; });
+    ui.toast(isNew ? `Рассрочка: ${money(Math.round(tot / months))} в месяц` : 'Рассрочка сохранена');
+  };
+  const del = () => ui.dialog({ title: 'Удалить рассрочку?', msg: 'Уже списанные платежи останутся в расходах.', actions: [{ label: 'Отмена', style: 'bold' }, { label: 'Удалить', style: 'destructive', run: () => { close(); store.set(s0 => ({ installments: s0.installments.filter(x => x.id !== it.id) })); ui.toast('Рассрочка удалена'); } }] });
+  return html`<${SheetNav} title=${isNew ? 'Новая рассрочка' : it.name} onCancel=${close} done=${isNew ? 'Добавить' : 'Готово'} onDone=${save} />
+    <div class="sheet__body">
+      ${st && html`<div class="card" style="justify-items:center;text-align:center">
+        <div class="metric__label">${st.done ? 'Рассрочка выплачена' : 'Осталось выплатить'}</div>
+        <div class="metric__v">${fmt(st.left)}<small>₸</small></div>
+        <div class="progress" style=${`width:100%;--p:${st.paidN / it.months};--c:var(--purple)`}><i></i></div>
+        <div class="metric__sub">${st.paidN} из ${it.months} платежей${st.next ? ` · следующий ${dateLong(st.next.date)}` : ''}</div>
+      </div>`}
+      <div class="section"><div class="section__header">Покупка</div><div class="group">
+        <label class="cell" for="inst-name"><span>Название</span><input class="cell__input" id="inst-name" placeholder="iPhone 16" value=${name} onInput=${e => setName(e.target.value)} /></label>
+        <label class="cell" for="inst-total"><span>Сумма</span><input class="cell__input num" id="inst-total" inputmode="numeric" placeholder="0 ₸" value=${total} onInput=${e => setTotal(digitsOnly(e.target.value))} /></label>
+        <div class="cell"><span class="cell__main">Срок, мес.</span><${Seg} items=${[[3, '3'], [6, '6'], [12, '12'], [24, '24']]} value=${months} onChange=${v => { setMonths(v); setPb(x => Math.min(x, v - 1)); }} style="width:180px" /></div>
+        <div class="cell"><span class="cell__main">Первый платёж</span><input type="date" id="inst-first" class="capsule" style="border:0" value=${first} onInput=${e => e.target.value && setFirst(e.target.value)} /></div>
+        <div class="cell"><span class="cell__main">Оплачено до учёта</span><div class="stepper"><button aria-label="Меньше" disabled=${pb <= 0} onClick=${() => setPb(x => Math.max(0, x - 1))}><${Icon} n="remove" /></button><b>${pb}</b><button aria-label="Больше" disabled=${pb >= months - 1} onClick=${() => setPb(x => Math.min(months - 1, x + 1))}><${Icon} n="add" /></button></div></div>
+      </div><div class="section__footer">${tot ? `${money(Math.round(tot / months))} в месяц, ${months} ${plural(months, 'платёж', 'платежа', 'платежей')}. ` : ''}Платёж списывается сам в день оплаты. Если часть уже была оплачена до начала учёта, укажите сколько.</div></div>
+      ${st && html`<div class="section"><div class="section__header">График платежей</div><div class="group">
+        ${st.sch.map(pp => { const paid = st.paid.has(pp.k), soon = !paid && pp === st.next; return html`<div class="cell">
+          <${Icon} n=${paid ? 'check_circle' : 'radio_button_unchecked'} fill=${paid} style=${'color:' + (paid ? 'var(--green)' : soon ? 'var(--orange)' : 'var(--label-3)')} />
+          <span class="cell__main" style=${paid ? 'color:var(--label-2)' : ''}>${dateLong(pp.date)} ${parse(pp.date).getFullYear()}</span>
+          <span class="cell__value">${fmt(pp.amount)} ₸</span></div>`; })}
+      </div></div>`}
+      ${!isNew && html`<div class="group"><button class="cell cell--destructive" onClick=${del}>Удалить рассрочку</button></div>`}
+    </div>`;
+}
+function DepSheet({ d, close }) {
+  const s = store.s, isNew = !d;
+  const [name, setName] = useState(d?.name || 'Накопительный');
+  const [amount, setAmount] = useState('');
+  const [term, setTerm] = useState(d?.term || 12);
+  const [cap, setCap] = useState(d?.cap ?? true);
+  const [rf, setRf] = useState(() => { const n = d?.rate ?? 17.52, c = d?.cap ?? true; return { nom: fmtRate(n), eff: fmtRate(effFromNom(n, c)), anchor: 'eff' }; });
+  const rate = parseRate(rf.nom);
+  const changeCap = v => { setCap(v); setRf(r => syncRate(r, v)); };
+  const rateCells = html`
+    <label class="cell" for="dep-eff"><span class="cell__main"><span>Эффективная</span><span class="cell__sub">ГЭСВ</span></span><input class="cell__input num" id="dep-eff" inputmode="decimal" placeholder="0" value=${rf.eff} onInput=${e => setRf(r => syncRate({ ...r, eff: e.target.value, anchor: 'eff' }, cap))} /><span class="cell__value" style="margin-left:-9px">%</span></label>
+    <label class="cell" for="dep-nom"><span class="cell__main">Номинальная</span><input class="cell__input num" id="dep-nom" inputmode="decimal" placeholder="0" value=${rf.nom} onInput=${e => setRf(r => syncRate({ ...r, nom: e.target.value, anchor: 'nom' }, cap))} /><span class="cell__value" style="margin-left:-9px">%</span></label>`;
+  const saveRate = () => {
+    if (!(rate > 0 && rate < 100)) return ui.toast('Проверьте ставку', null, 'error');
+    if (Math.abs(rate - d.rate) > 1e-9) { store.set(s0 => ({ deposits: s0.deposits.map(x => (x.id === d.id ? { ...x, rate } : x)) })); ui.toast(`Ставка: ${rf.eff}% ГЭСВ, ${rf.nom}% номинальная`); }
+    close();
+  };  const [tick, setTick] = useState(0);
+  const amt = numOf(amount);
+  const txs = s.tx.filter(t => !t.deletedAt);
+  const st = d ? depState(d, txs) : null;
+  const end = addMonths(d ? d.start : TODAY, d ? d.term : term);
+  const proj = d ? depState(d, txs, end) : amt ? depState({ id: '_', start: TODAY, rate, cap }, [{ dep: '_', type: 'transfer', amount: amt, date: TODAY }], end) : null;
+  // проценты «капают» прямо на глазах: начисление в секунду
+  const perSec = st ? st.bal * d.rate / 100 / 365 / 86400 : 0;
+  useEffect(() => { if (!d || s.settings.motion === 'reduced') return; const t0 = Date.now(); const id = setInterval(() => setTick((Date.now() - t0) / 1000), 100); return () => clearInterval(id); }, []);
+  const termP = d ? Math.min(1, diffDays(d.start, TODAY) / Math.max(1, diffDays(d.start, end))) : 0;
+  const open = () => {
+    if (!name.trim()) return ui.toast('Введите название', null, 'error');
+    if (amt < 1000) return ui.toast('Сумма открытия от 1 000 ₸', null, 'error');
+    if (!(rate > 0 && rate < 100)) return ui.toast('Укажите ставку', null, 'error');
+    close();
+    const id = uid();
+    mutate(s0 => ({ deposits: [...(s0.deposits || []), { id, name: name.trim(), rate, term, cap, start: TODAY, createdAt: Date.now() }], tx: [...s0.tx, mkTransfer(id, amt, 'Открытие депозита')] }));
+    ui.toast(`Депозит открыт: ${money(amt)}`);
+  };
+  const topUp = () => {
+    if (amt < 100) return ui.toast('Введите сумму пополнения', null, 'error');
+    mutate(s0 => ({ tx: [...s0.tx, mkTransfer(d.id, amt, 'Пополнение депозита')] }));
+    setAmount(''); buzz(12); ui.toast(`Депозит пополнен на ${money(amt)}`);
+  };
+  const closeDep = () => ui.dialog({ title: 'Закрыть депозит?', msg: `${money(st.bal)} вернутся в свободные деньги, из них ${money(st.interest)} — проценты.`, actions: [{ label: 'Отмена', style: 'bold' }, { label: 'Закрыть', style: 'destructive', run: () => {
+    close(); const now = Date.now();
+    mutate(s0 => ({ deposits: s0.deposits.map(x => (x.id === d.id ? { ...x, closedAt: now } : x)), tx: [...s0.tx, mkTransfer(d.id, -Math.round(st.put), 'Закрытие депозита'), { id: uid(), type: 'income', cat: 'interest', amount: Math.round(st.interest), date: TODAY, note: `Проценты: ${d.name}`, createdAt: now, updatedAt: now, deletedAt: null }] }));
+    ui.toast('Депозит закрыт, деньги вернулись');
+  } }] });
+  const moneyField = html`<label class="input input--money" for="dep-amount"><input id="dep-amount" inputmode="numeric" placeholder="0" value=${amount} onInput=${e => setAmount(digitsOnly(e.target.value))} /><span class="input__suffix">₸</span></label>
+    <div class="row-scroll" style="margin-top:10px">${[10000, 50000, 100000, 300000].map(v => html`<button class="capsule" aria-pressed=${String(amt === v)} onClick=${() => setAmount(fmt(v))}>${fmt(v)} ₸</button>`)}</div>`;
+  if (isNew) return html`<${SheetNav} title="Новый депозит" onCancel=${close} done="Открыть" onDone=${open} />
+    <div class="sheet__body">
+      <div class="section"><div class="section__header">Сумма открытия</div>${moneyField}</div>
+      <div class="section"><div class="section__header">Условия</div><div class="group">
+        <label class="cell" for="dep-name"><span>Название</span><input class="cell__input" id="dep-name" value=${name} onInput=${e => setName(e.target.value)} /></label>
+        <div class="cell"><span class="cell__main">Срок, мес.</span><${Seg} items=${[[3, '3'], [6, '6'], [12, '12'], [24, '24']]} value=${term} onChange=${setTerm} style="width:180px" /></div>
+        <div class="cell"><span class="cell__main">Капитализация</span><${Switch} on=${cap} onChange=${changeCap} label="Капитализация" /></div>
+      </div></div>
+      <div class="section"><div class="section__header">Ставка</div><div class="group">${rateCells}</div>
+        <div class="section__footer">В приложении банка обычно указаны обе. Введите любую — вторая посчитается. ${cap ? 'С ежемесячной капитализацией 19% ГЭСВ = 17,52% номинальной.' : 'Без капитализации они совпадают.'}</div></div>
+      ${proj && rate > 0 && html`<div class="banner banner--success"><${Icon} n="trending_up" /><div class="banner__main"><b>≈ ${money(proj.bal)} через ${term} мес.</b><span>Доход ${money(proj.bal - amt)} при ${rf.eff}% ГЭСВ, если не пополнять.</span></div></div>`}
+    </div>`;
+  return html`<${SheetNav} title=${d.name} onCancel=${close} cancel="Закрыть" done="Готово" onDone=${saveRate} />
+    <div class="sheet__body">
+      <div class="card" style="justify-items:center;text-align:center">
+        <div class="metric__label">На депозите</div>
+        <div class="metric__v">${fmt(st.bal + perSec * tick)}<small>₸</small></div>
+        <div class="metric__sub num" style="color:var(--green)">+${(st.interest + perSec * tick).toFixed(2).replace('.', ',')} ₸ процентов</div>
+        <div class="progress" style=${`width:100%;--p:${termP};--c:var(--green)`}><i></i></div>
+        <div class="metric__sub">${fmtRate(effFromNom(d.rate, d.cap))}% ГЭСВ · ${fmtRate(d.rate)}% номинальная</div>
+        <div class="metric__sub">До ${dateLong(end)} ${parse(end).getFullYear()} · к концу срока ≈ ${money(proj.bal)}</div>
+      </div>
+      <div class="section"><div class="section__header">Пополнить</div>${moneyField}<button class="btn btn--filled btn--block" style="margin-top:12px" onClick=${topUp}>Пополнить</button></div>
+      <div class="group">
+        ${rateCells}
+        <div class="cell"><span class="cell__main">Капитализация</span><span class="cell__value">${d.cap ? 'Ежемесячно' : 'Нет'}</span></div>
+        <div class="cell"><span class="cell__main">Вложено</span><span class="cell__value">${money(st.put)}</span></div>
+        <div class="cell"><span class="cell__main">Открыт</span><span class="cell__value">${dateLong(d.start)} ${parse(d.start).getFullYear()}</span></div>
+      </div>
+      <div class="section"><div class="section__header">История</div><div class="group">
+        ${[...st.ops].reverse().map(t => html`<div class="cell"><span class="cell__main"><span>${t.note}</span><span class="cell__sub">${dateLong(t.date)}</span></span><span class="amt">${t.amount > 0 ? '+' : '−'}${fmt(Math.abs(t.amount))} ₸</span></div>`)}
+      </div></div>
+      <div class="group"><button class="cell cell--destructive" onClick=${closeDep}>Закрыть депозит</button></div>
+    </div>`;
+}
+
+/* ================= прочие шторки ================= */
+function ChallengeSheet({ ch, close }) {
+  const s = store.s;
+  const cats = s.categories.filter(c => c.type === 'expense' && !c.archived);
+  const [cat, setCat] = useState(ch?.cat || (s.challenges.some(x => x.cat === 'taxi') ? null : 'taxi'));
+  const [limit, setLimit] = useState(ch ? String(ch.limit) : '20000');
+  const save = () => {
+    const l = parseInt(limit, 10);
+    if (!cat) return ui.toast('Выберите категорию', null, 'error');
+    if (!l || l < 100) return ui.toast('Лимит должен быть от 100 ₸', null, 'error');
+    close();
+    mutate(st => ({ challenges: ch ? st.challenges.map(x => (x.id === ch.id ? { ...x, cat, limit: l } : x)) : [...st.challenges, { id: uid(), cat, limit: l, createdAt: Date.now() }] }));
+    ui.toast(ch ? 'Челлендж обновлён' : `${catOf(cat).name}: до ${money(l)} в месяц`);
+  };
+  return html`<${SheetNav} title=${ch ? 'Челлендж' : 'Новый челлендж'} onCancel=${close} done=${ch ? 'Готово' : 'Начать'} onDone=${save} />
+    <div class="sheet__body">
+      <div class="section"><div class="section__header">Категория</div>
+        <div class="group" style="padding:14px 8px"><div class="picks">${cats.map(c => html`<button class="pick" style=${`--c:var(--${c.color})`} aria-pressed=${String(cat === c.id)} onClick=${() => { buzz(5); setCat(c.id); }}><${Sq} c=${c} size="md" /><span>${c.name}</span></button>`)}</div></div></div>
+      <div class="section"><div class="section__header">Лимит в месяц, ₸</div>
+        <div class="group"><input class="field num" id="ch-limit" inputmode="numeric" value=${limit} onInput=${e => setLimit(e.target.value.replace(/\D/g, ''))} /></div>
+        <div class="group" style="padding:6px 16px;margin-top:10px"><div class="slider-row"><span class="t-footnote">5к</span>
+          <input type="range" class="slider" id="ch-slider" aria-label="Лимит" min="5000" max="100000" step="1000" value=${Math.min(100000, Math.max(5000, +limit || 5000))} style=${`--p:${(Math.min(100000, Math.max(5000, +limit || 5000)) - 5000) / 950}%`} onInput=${e => { setLimit(e.target.value); buzz(2); }} />
+          <span class="t-footnote">100к</span></div></div>
+        <div class="row-scroll" style="margin-top:10px">${[10000, 20000, 30000, 50000].map(v => html`<button class="capsule" aria-pressed=${String(+limit === v)} onClick=${() => setLimit(String(v))}>${fmt(v)} ₸</button>`)}</div>
+      </div>
+      ${ch && html`<div class="group"><button class="cell cell--destructive" onClick=${() => { close(); store.set(st => ({ challenges: st.challenges.filter(x => x.id !== ch.id) })); ui.toast('Челлендж удалён'); }}>Удалить челлендж</button></div>`}
+    </div>`;
+}
+function CategorySheet({ cat, close }) {
+  const isNew = !cat.id;
+  const [name, setName] = useState(cat.name || ''), [icon, setIcon] = useState(cat.icon || 'more_horiz'), [color, setColor] = useState(cat.color || 'blue');
+  const save = () => {
+    if (!name.trim()) return ui.toast('Введите название', null, 'error');
+    close();
+    store.set(st => ({ categories: isNew ? [...st.categories, { id: 'c' + uid().slice(0, 8), type: cat.type, name: name.trim(), icon, color, order: st.categories.length, archived: false }] : st.categories.map(c => (c.id === cat.id ? { ...c, name: name.trim(), icon, color } : c)) }));
+    ui.toast(isNew ? 'Категория добавлена' : 'Категория сохранена');
+  };
+  const archive = () => { close(); store.set(st => ({ categories: st.categories.map(c => (c.id === cat.id ? { ...c, archived: !c.archived } : c)) })); ui.toast(cat.archived ? 'Категория вернулась' : 'Категория в архиве, история сохранена'); };
+  return html`<${SheetNav} title=${isNew ? 'Новая категория' : 'Категория'} onCancel=${close} done="Готово" onDone=${save} />
+    <div class="sheet__body">
+      <div style="display:grid;justify-items:center"><${Sq} c=${{ icon, color }} size="lg" /></div>
+      <div class="group"><input class="field" id="cat-name" placeholder="Название" value=${name} onInput=${e => setName(e.target.value)} /></div>
+      <div class="group colors">${COLORS.map(p => html`<button class="color" style=${`--c:var(--${p})`} aria-pressed=${String(p === color)} aria-label=${'Цвет ' + p} onClick=${() => setColor(p)}></button>`)}</div>
+      <div class="group icons" style=${`--c:var(--${color})`}>${ICONS.map(i => html`<button aria-pressed=${String(i === icon)} onClick=${() => setIcon(i)} aria-label=${i}><${Icon} n=${i} /></button>`)}</div>
+      ${!isNew && html`<div class="group"><button class="cell more" onClick=${archive}>${cat.archived ? 'Вернуть из архива' : 'Убрать в архив'}</button></div>`}
+    </div>`;
+}
+function BackupSheet({ close }) {
+  const s = store.s;
+  const json = useMemo(() => backupJSON(s), []);
+  const kb = Math.max(1, Math.round(new Blob([json]).size / 1024));
+  const [copied, setCopied] = useState(false);
+  const copy = () => { navigator.clipboard?.writeText(json).then(() => { setCopied(true); markBackup(); ui.toast('JSON скопирован'); }).catch(() => ui.toast('Не получилось скопировать. Выделите текст вручную.', null, 'error')); };
+  return html`<${SheetNav} title="Бэкап" onCancel=${close} cancel="Закрыть" />
+    <div class="sheet__body">
+      <div class="group">
+        <div class="cell"><span class="cell__main">Файл</span><span class="cell__value">grosh-${TODAY}.json</span></div>
+        <div class="cell"><span class="cell__main">Размер</span><span class="cell__value">${kb} КБ · ${s.tx.filter(t => !t.deletedAt).length} записей</span></div>
+      </div>
+      <div class="code">${json.slice(0, 900)}…</div>
+      <button class="btn btn--filled" onClick=${() => { download(`grosh-${TODAY}.json`, json, 'application/json'); markBackup(); close(); ui.toast('Бэкап сохранён'); }}><${Icon} n="download" />Скачать файл</button>
+      <button class="btn" onClick=${copy}><${Icon} n=${copied ? 'check' : 'content_copy'} />${copied ? 'Скопировано' : 'Скопировать JSON'}</button>
+      <div class="section__footer" style="padding:0 16px">Если скачивание не началось (в окне предпросмотра оно может быть заблокировано), скопируйте JSON и сохраните в файл.</div>
+    </div>`;
+}
+function askImport(data) {
+  const n = data.tx.filter(t => !t.deletedAt).length;
+  const apply = mode => {
+    if (mode === 'replace') store.set({ ...data, v: SCHEMA, meta: { ...data.meta, onboarded: true } });
+    else store.set(st => { const m = new Map(st.tx.map(t => [t.id, t])); data.tx.forEach(t => { const o = m.get(t.id); if (!o || (t.updatedAt || 0) > (o.updatedAt || 0)) m.set(t.id, t); }); const cats = [...st.categories]; data.categories.forEach(c => { if (!cats.some(x => x.id === c.id)) cats.push(c); }); return { tx: [...m.values()], categories: cats }; });
+    mutate(() => ({}));
+    ui.toast(mode === 'replace' ? `Загружено ${n} ${plural(n, 'запись', 'записи', 'записей')}` : 'Бэкап объединён с текущими данными');
+  };
+  ui.dialog({ type: 'actions', title: `Бэкап${data.exportedAt ? ' от ' + dateLong(data.exportedAt.slice(0, 10)) : ''}`, msg: `${n} ${plural(n, 'запись', 'записи', 'записей')}. При объединении из двух версий записи остаётся более свежая.`,
+    actions: [{ label: 'Объединить с текущими', run: () => apply('merge') }, { label: 'Заменить всё', style: 'destructive', run: () => apply('replace') }] });
+}
+function ImportSheet({ data, close }) {
+  const n = data.tx.filter(t => !t.deletedAt).length;
+  const apply = mode => {
+    close();
+    if (mode === 'replace') store.set({ ...data, v: SCHEMA, meta: { ...data.meta } });
+    else store.set(st => { const m = new Map(st.tx.map(t => [t.id, t])); data.tx.forEach(t => { const o = m.get(t.id); if (!o || (t.updatedAt || 0) > (o.updatedAt || 0)) m.set(t.id, t); }); const cats = [...st.categories]; data.categories.forEach(c => { if (!cats.some(x => x.id === c.id)) cats.push(c); }); return { tx: [...m.values()], categories: cats }; });
+    mutate(() => ({}));
+    ui.toast(mode === 'replace' ? `Загружено ${n} ${plural(n, 'запись', 'записи', 'записей')}` : 'Бэкап объединён с текущими данными');
+  };
+  return html`<${SheetNav} title="Загрузить бэкап" onCancel=${close} />
+    <div class="sheet__body">
+      <div class="group"><div class="cell"><span class="cell__main">${n} ${plural(n, 'запись', 'записи', 'записей')}</span><span class="cell__value">${data.exportedAt ? dateLong(data.exportedAt.slice(0, 10)) : ''}</span></div></div>
+      <button class="btn btn--filled" onClick=${() => apply('merge')}>Объединить с текущими</button>
+      <button class="btn btn--destructive" onClick=${() => apply('replace')}>Заменить всё</button>
+      <div class="section__footer" style="padding:0 16px">При объединении из двух версий одной записи остаётся более свежая.</div>
+    </div>`;
+}
+function AvatarSheet({ close }) {
+  const p = store.s.profile;
+  return html`<${SheetNav} title="Цвет профиля" onCancel=${close} cancel="Закрыть" />
+    <div class="sheet__body">
+      <div style="display:grid;justify-items:center"><span class="avatar avatar--xl" style=${`--c:var(--${p.color})`}>${initials(p.name)}</span></div>
+      <div class="group colors">${COLORS.map(c => html`<button class="color" style=${`--c:var(--${c})`} aria-pressed=${String(c === p.color)} aria-label=${'Цвет ' + c} onClick=${() => { buzz(5); store.set(st => ({ profile: { ...st.profile, color: c } })); }}></button>`)}</div>
+    </div>`;
+}
+function ShowcaseSheet({ slot, res, close }) {
+  const got = ACH.filter(a => res[a.id].tier || res[a.id].count);
+  const pick = id => { store.set(st => { const sc = [...st.profile.showcase].filter(x => x !== id); sc[slot] = id; return { profile: { ...st.profile, showcase: sc.filter(Boolean).slice(0, 3) } }; }); close(); };
+  return html`<${SheetNav} title="Витрина" onCancel=${close} />
+    <div class="sheet__body">
+      ${got.length ? html`<div class="group badges">${got.map(a => html`<button class="badge-cell" onClick=${() => pick(a.id)}><${Badge} a=${a} r=${res[a.id]} size=${60} /><b>${a.n}</b></button>`)}</div>`
+        : html`<div class="group"><div class="cell secondary">Пока нечего показать. Первая награда выдаётся за первую запись.</div></div>`}
+    </div>`;
+}
+
+/* ================= приложение ================= */
+function App() {
+  const s = useStore();
+  const [tab, setTab] = useState(() => { const h = location.hash.slice(1); return ['home', 'calendar', 'stats', 'awards'].includes(h) ? h : 'home'; });
+  const [sheet, setSheet] = useState(null);
+  const [sheetOut, setSheetOut] = useState(false);
+  const [pages, setPages] = useState([]);
+  const [recap, setRecap] = useState(null);
+  const [toast, setToast] = useState(null);
+  const [unlocks, setUnlocks] = useState(null);
+  const [auth, setAuth] = useState(() => (!s.meta.onboarded && !new URLSearchParams(location.search).has('embed') ? 'welcome' : null));
+  const [dialog, setDialog] = useState(null);
+  const toastT = useRef();
+  const hostTheme = useRef(document.documentElement.getAttribute('data-theme'));
+  const { c, res } = useMemo(() => evaluate(s), [s]);
+
+  ui.sheet = v => { setSheetOut(false); setSheet(v); };
+  ui.page = p => setPages(ps => [...ps.filter(x => x !== p), p]);
+  ui.recap = setRecap;
+  ui.auth = step => setAuth(step || 'welcome');
+  ui.dialog = setDialog;
+  ui.unlock = ids => setTimeout(() => setUnlocks(u => (u ? [...u, ...ids] : ids)), 450);
+  ui.toast = (text, action, kind = 'ok') => {
+    clearTimeout(toastT.current);
+    setToast({ text, action, kind, id: Date.now(), closing: false });
+    toastT.current = setTimeout(() => { setToast(t => t && { ...t, closing: true }); toastT.current = setTimeout(() => setToast(null), 330); }, action ? 4500 : 2400);
+  };
+
+  useEffect(() => {
+    const h = () => { const v = location.hash.slice(1); if (['home', 'calendar', 'stats', 'awards'].includes(v)) setTab(v); };
+    addEventListener('hashchange', h);
+    return () => removeEventListener('hashchange', h);
+  }, []);
+  useEffect(() => { try { history.replaceState(null, '', '#' + tab); } catch (e) {} }, [tab]);
+  useEffect(() => {
+    const r = document.documentElement, t = s.settings.theme;
+    if (t === 'system') { hostTheme.current ? r.setAttribute('data-theme', hostTheme.current) : r.removeAttribute('data-theme'); } else r.setAttribute('data-theme', t);
+    s.settings.motion === 'reduced' ? r.setAttribute('data-motion', 'reduced') : r.removeAttribute('data-motion');
+  }, [s.settings.theme, s.settings.motion]);
+
+  const tabs = [['home', 'home', 'Обзор'], ['calendar', 'calendar_month', 'Календарь'], ['stats', 'bar_chart', 'Статистика'], ['awards', 'emoji_events', 'Награды']];
+  const tabBtn = ([id, icon, label]) => html`<button class="tab" aria-current=${tab === id ? 'page' : null} onClick=${() => { buzz(5); setTab(id); setPages([]); }}><${Icon} n=${icon} fill=${tab === id} /><span>${label}</span></button>`;
+  const closePage = p => setPages(ps => ps.filter(x => x !== p));
+  const sheetBody = close => {
+    switch (sheet.kind) {
+      case 'tx': return html`<${TxSheet} tx=${sheet.tx} preset=${sheet.preset} close=${close} />`;
+      case 'ach': return html`<${AchSheet} id=${sheet.id} res=${res} close=${close} />`;
+      case 'challenge': return html`<${ChallengeSheet} ch=${sheet.ch} close=${close} />`;
+      case 'category': return html`<${CategorySheet} cat=${sheet.cat} close=${close} />`;
+      case 'backup': return html`<${BackupSheet} close=${close} />`;
+      case 'import': return html`<${ImportSheet} data=${sheet.data} close=${close} />`;
+      case 'avatar': return html`<${AvatarSheet} close=${close} />`;
+      case 'showcase': return html`<${ShowcaseSheet} slot=${sheet.slot} res=${res} close=${close} />`;
+      case 'inst': return html`<${InstSheet} it=${sheet.it} close=${close} />`;
+      case 'dep': return html`<${DepSheet} d=${sheet.d} close=${close} />`;
+    }
+  };
+  return html`<div class=${'app' + (sheet && !sheetOut && !sheet.auto ? ' has-sheet' : '')}>
+    <div class="stage">
+      ${tab === 'home' && html`<${Home} key="home" s=${s} c=${c} />`}
+      ${tab === 'calendar' && html`<${CalendarScreen} key="cal" s=${s} c=${c} />`}
+      ${tab === 'stats' && html`<${Stats} key="stats" s=${s} c=${c} />`}
+      ${tab === 'awards' && html`<${Awards} key="awards" s=${s} c=${c} res=${res} />`}
+      <nav class="tabbar" aria-label="Разделы">
+        ${tabBtn(tabs[0])}${tabBtn(tabs[1])}
+        <button class="tab tab--add" aria-label="Новая запись" onClick=${() => { buzz(8); ui.sheet({ kind: 'tx' }); }}><${Icon} n="add_circle" fill /><span class="tab__label-wide">Новая запись</span><span class="tab__label-short">Добавить</span></button>
+        ${tabBtn(tabs[2])}${tabBtn(tabs[3])}
+      </nav>
+      ${pages.map(p => html`<div key=${p}>${
+        p === 'settings' ? html`<${Settings} s=${s} onClose=${() => closePage(p)} />`
+        : p === 'profile' ? html`<${Profile} s=${s} c=${c} res=${res} onClose=${() => closePage(p)} />`
+        : html`<${Categories} s=${s} onClose=${() => closePage(p)} />`}</div>`)}
+    </div>
+    ${sheet && html`<${Sheet} key=${sheet.kind + (sheet.tx?.id || sheet.id || sheet.it?.id || sheet.d?.id || '')} auto=${sheet.auto} onClosing=${() => setSheetOut(true)} onClose=${() => setSheet(null)}>${sheetBody}<//>`}
+    ${recap != null && html`<${Recap} k=${recap} onClose=${() => { store.set(st => ({ meta: { ...st.meta, recapSeen: Math.max(st.meta.recapSeen ?? 0, recap) } })); setRecap(null); }} />`}
+    ${unlocks && html`<${Unlock} ids=${unlocks} res=${res} onDone=${() => setUnlocks(null)} />`}
+    ${auth && html`<${Auth} start=${auth} onClose=${() => setAuth(null)} />`}
+    ${dialog && html`<${Dialog} d=${dialog} key=${dialog.title} onClose=${() => setDialog(null)} />`}
+    ${toast && html`<div class=${'island' + (toast.closing ? ' is-closing' : '')} key=${toast.id} role="status">
+      <${Icon} n=${toast.kind === 'error' ? 'error' : toast.kind === 'delete' ? 'delete' : 'check_circle'} style=${toast.kind === 'ok' ? '' : 'color:var(--red)'} />
+      <span>${toast.text}</span>
+      ${toast.action && html`<button onClick=${() => { toast.action.run(); setToast(null); }}>${toast.action.label}</button>`}
+    </div>`}
+  </div>`;
+}
+
+(async function boot() {
+  let s = null;
+  try { await idb.open(); s = await idb.get('state'); } catch (e) { idb.db = null; }
+  if (!s || s.v !== SCHEMA) { s = makeDefault(); if (idb.db) idb.put('state', s).catch(() => {}); }
+  store.s = s;
+  render(html`<${App} />`, document.getElementById('root'));
+})();
+</script>

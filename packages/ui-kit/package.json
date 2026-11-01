@@ -1,0 +1,25 @@
+{
+  "name": "@grosh/ui-kit",
+  "version": "0.1.0",
+  "description": "iOS-нативный UI-kit для веба на Preact: токены, компоненты, ConfigProvider и ThemeProvider",
+  "type": "module",
+  "main": "./src/index.js",
+  "module": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./styles.css": "./src/styles.css",
+    "./dist": "./dist/ui-kit.js"
+  },
+  "files": ["src", "dist", "README.md"],
+  "sideEffects": ["*.css"],
+  "scripts": {
+    "build": "vite build"
+  },
+  "peerDependencies": {
+    "htm": "^3.1.0",
+    "preact": "^10.20.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.5"
+  }
+}

@@ -1,0 +1,811 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Грош · дизайн-система</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,300..700,0..1,0&icon_names=account_balance,add,add_circle,auto_awesome,autorenew,backspace,bar_chart,calendar_month,cancel,category,check,check_circle,checkroom,chevron_left,chevron_right,close,cloud_sync,credit_card,delete,diamond,directions_bus,directions_walk,download,edit_calendar,edit_square,emoji_events,error,fitness_center,flight,help,home,info,ios_share,laptop_mac,local_cafe,local_fire_department,local_gas_station,local_taxi,lock,mail,medication,military_tech,more_horiz,movie,music_note,north_east,notifications,open_in_new,payments,person,pets,radio_button_unchecked,receipt_long,redeem,remove,savings,schedule,school,search,settings,shopping_cart,smartphone,south_west,sports_esports,swap_vert,sync,table_view,tag,task_alt,trending_up,undo,unfold_more,upload,visibility,visibility_off,volume_down,volume_up,warning,work&display=block">
+<link rel="stylesheet" href="ds.css">
+<style>
+  .layout { max-width: 1240px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  @media (min-width: 1080px) { .layout { grid-template-columns: 210px minmax(0, 1fr); gap: 48px; } }
+  .toc { display: none; }
+  @media (min-width: 1080px) {
+    .toc { display: grid; align-content: start; gap: 18px; position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 32px 0 40px; }
+    .toc b { font-size: var(--t-footnote); color: var(--label-2); text-transform: uppercase; padding: 0 10px 4px; display: block; font-weight: 500; }
+    .toc a { display: block; padding: 5px 10px; border-radius: 8px; color: var(--label); text-decoration: none; font-size: var(--t-subhead); letter-spacing: -.24px; }
+    .toc a:hover { background: var(--fill-4); }
+    .toc a.is-on { background: var(--tint); color: #fff; }
+  }
+  main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 56px; padding-block: 12px 96px; min-width: 0; }
+  .top { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 16px; padding-top: 28px; }
+  .top p { color: var(--label-2); max-width: 62ch; margin-top: 8px; }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .controls .seg { width: 250px; }
+  .part { display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .part > h2 { font-size: var(--t-footnote); color: var(--label-2); text-transform: uppercase; font-weight: 500; letter-spacing: .2px; padding-bottom: 8px; border-bottom: var(--hair) solid var(--sep); }
+  section { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; scroll-margin-top: 20px; }
+  section > h3 { font-size: var(--t-title2); font-weight: 700; letter-spacing: .35px; }
+  section > p { color: var(--label-2); max-width: 72ch; font-size: var(--t-subhead); letter-spacing: -.24px; margin-top: -6px; }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); align-items: start; }
+  .grid--2 { grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); }
+  .panel { background: var(--bg-2); border-radius: var(--r-group); padding: 16px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-content: start; min-width: 0; }
+  .panel--bg { background: var(--bg); box-shadow: inset 0 0 0 var(--hair) var(--sep); }
+  .panel__label { font-size: var(--t-footnote); color: var(--label-2); display: flex; justify-content: space-between; gap: 8px; letter-spacing: -.08px; }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; letter-spacing: 0; color: var(--label-2); }
+  .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .stack { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  a.btn { text-decoration: none; }
+
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+  .sw { background: var(--bg-2); border-radius: var(--r-group); overflow: hidden; }
+  .sw i { display: block; height: 56px; background: var(--c); }
+  .sw div { padding: 8px 12px 10px; display: grid; gap: 1px; font-size: var(--t-footnote); }
+  .sw b { font-weight: 600; font-size: var(--t-subhead); }
+  .sw span { color: var(--label-2); font-variant-numeric: tabular-nums; }
+
+  .type-row { display: grid; grid-template-columns: 170px minmax(0, 1fr); gap: 16px; align-items: baseline; padding: 12px 16px; }
+  .type-row + .type-row { border-top: var(--hair) solid var(--sep); }
+  .type-row code { white-space: nowrap; }
+  @media (max-width: 560px) { .type-row { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+  .scale { display: grid; gap: 8px; }
+  .scale div { display: grid; grid-template-columns: 64px 44px minmax(0, 1fr); gap: 10px; align-items: center; font-size: var(--t-footnote); color: var(--label-2); }
+  .scale i { display: block; height: 12px; border-radius: 3px; background: var(--tint); }
+  .radii { display: flex; flex-wrap: wrap; gap: 12px; }
+  .radii div { width: 76px; height: 76px; background: color-mix(in srgb, var(--tint) 12%, transparent); box-shadow: inset 0 0 0 1px var(--tint); display: grid; place-items: end start; padding: 8px; font-size: var(--t-caption1); color: var(--tint); font-weight: 600; }
+  .layers { display: grid; gap: 6px; }
+  .layers div { display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 8px; background: var(--fill-4); font-size: var(--t-footnote); }
+
+  .ease { display: grid; grid-template-columns: 130px minmax(0, 1fr); gap: 12px; align-items: center; }
+  .track { position: relative; height: 36px; border-radius: 10px; background: var(--fill-4); width: 100%; }
+  .ball { position: absolute; top: 4px; left: 4px; width: 28px; height: 28px; border-radius: 50%; background: var(--tint); }
+  .play .ball { left: calc(100% - 32px); }
+  .anim-demo { height: 64px; border-radius: 10px; background: var(--fill-4); display: grid; place-items: center; overflow: hidden; }
+  .anim-demo > div { width: 44px; height: 44px; border-radius: 10px; background: var(--tint); }
+
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+  .icon-grid div { display: grid; justify-items: center; gap: 6px; padding: 12px 4px; border-radius: 10px; background: var(--bg-2); font-size: 11px; color: var(--label-2); text-align: center; overflow-wrap: anywhere; letter-spacing: 0; }
+  .icon-grid div:hover .ms { font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24; transform: scale(1.15); color: var(--tint); }
+
+  .phone { width: 100%; max-width: 390px; height: 800px; border-radius: 44px; overflow: hidden; border: 10px solid #000; background: #000; margin: 0 auto; }
+  .phone iframe, .desk iframe { width: 100%; height: 100%; border: 0; display: block; background: var(--bg); }
+  .phones { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+  .desk-scale { overflow: hidden; border-radius: 14px; box-shadow: inset 0 0 0 var(--hair) var(--sep); }
+  .desk { width: 1280px; height: 800px; transform-origin: top left; }
+  .cap { text-align: center; font-size: var(--t-footnote); color: var(--label-2); margin-top: 8px; }
+
+  .navdemo { position: relative; height: 260px; border-radius: 12px; overflow: hidden; background: var(--bg); box-shadow: inset 0 0 0 var(--hair) var(--sep); }
+  .navdemo__scroll { position: absolute; inset: 0; overflow-y: auto; }
+  .navdemo .large-title { padding: 52px 16px 8px; }
+  .tabdemo { position: relative; height: 84px; border-radius: 12px; overflow: hidden; background: var(--bg); box-shadow: inset 0 0 0 var(--hair) var(--sep); container: none; }
+  .tabdemo .tabbar { position: absolute; }
+  .overlay-root { position: fixed; inset: 0; z-index: 200; container: app / inline-size; }
+  .rules .cell { align-items: flex-start; }
+  .rules .ms { margin-top: 1px; }
+  .do { color: var(--green); }
+  .dont { color: var(--red); }
+  .chart-mini { display: flex; align-items: flex-end; gap: 4px; height: 120px; }
+  .chart-mini i { flex: 1; border-radius: 3px 3px 1px 1px; background: var(--red); height: calc(var(--h) * 100%); transform-origin: bottom; animation: grow-y var(--dur-4) var(--ease-ios) both; animation-delay: calc(var(--i) * 30ms); }
+  .stackbar { display: flex; gap: 2px; height: 14px; border-radius: 4px; overflow: hidden; }
+  .stackbar i { display: block; background: var(--c); width: calc(var(--p) * 100%); }
+  .voice { width: 100%; border-collapse: collapse; font-size: var(--t-subhead); }
+  .voice th { text-align: left; font-size: var(--t-footnote); text-transform: uppercase; color: var(--label-2); font-weight: 500; padding: 10px 16px; }
+  .voice td { padding: 12px 16px; border-top: var(--hair) solid var(--sep); vertical-align: top; }
+  .voice td:first-child { color: var(--green); }
+  .voice td:last-child { color: var(--red); }
+  .table-wrap { overflow-x: auto; background: var(--bg-2); border-radius: var(--r-group); }
+</style>
+
+<div class="layout">
+  <nav class="toc" aria-label="Разделы" id="toc">
+    <div><b>Основа</b><a href="#principles">Правила</a><a href="#color">Цвет</a><a href="#type">Типографика</a><a href="#space">Отступы и сетка</a><a href="#shape">Форма и слои</a><a href="#icons">Иконки</a><a href="#motion">Движение</a></div>
+    <div><b>Ввод</b><a href="#fields">Текстовые поля</a><a href="#forms">Формы в списке</a><a href="#search">Поиск</a><a href="#selects">Селекты и меню</a><a href="#choice">Выбор</a><a href="#range">Слайдер и степпер</a><a href="#wheel">Барабан</a><a href="#amount">Сумма и клавиатура</a><a href="#pickers">Цвет и иконка</a></div>
+    <div><b>Показ</b><a href="#cells">Ячейки</a><a href="#tags">Теги и счётчики</a><a href="#progress">Прогресс и загрузка</a><a href="#banners">Баннеры и пустые</a><a href="#money">Рассрочки и депозиты</a><a href="#awards">Награды</a><a href="#data">Календарь и графики</a></div>
+    <div><b>Слои</b><a href="#dialogs">Алерты и action sheet</a><a href="#sheets">Шторка и уведомления</a><a href="#nav">Навигация</a></div>
+    <div><b>Экраны</b><a href="#screens">Живой прототип</a><a href="#voice">Тексты</a></div>
+  </nav>
+
+  <main>
+    <header class="top">
+      <div>
+        <span class="t-footnote secondary" style="text-transform:uppercase">Дизайн-система · v0.3</span>
+        <h1 class="t-large">Грош</h1>
+        <p>Учёт денег в тенге, который выглядит и ведёт себя как родное приложение iOS. Системные цвета, SF на Apple и Inter на Windows и Android, списки inset-grouped. Красоту делает движение, а не украшения.</p>
+      </div>
+      <div class="controls">
+        <div class="seg" id="themeSeg" style="--n:3"><span class="seg__thumb"></span><button data-v="system">Авто</button><button data-v="light">Светлая</button><button data-v="dark">Тёмная</button></div>
+        <a class="btn btn--filled btn--small" href="prototype.html" target="_blank" rel="noopener"><span class="ms">open_in_new</span>Прототип</a>
+      </div>
+    </header>
+
+    <!-- ================= ОСНОВА ================= -->
+    <div class="part"><h2>Основа</h2>
+      <section id="principles"><h3>Правила</h3>
+        <div class="group rules">
+          <div class="cell"><span class="ms fill do">check_circle</span><span class="cell__main"><span>Разделяем фоном и линией 0.5px</span><span class="cell__sub" style="white-space:normal">Серый grouped-фон, белые группы, волосяные разделители. Теней нет нигде, даже у меню и диалогов — их отделяет материал с размытием.</span></span></div>
+          <div class="cell"><span class="ms fill do">check_circle</span><span class="cell__main"><span>Цвет — только системный и только со смыслом</span><span class="cell__sub" style="white-space:normal">Синий — действие, зелёный — доход, красный — расход и удаление, оранжевый — награды.</span></span></div>
+          <div class="cell"><span class="ms fill do">check_circle</span><span class="cell__main"><span>Цель нажатия не меньше 44 × 44</span><span class="cell__sub" style="white-space:normal">Даже если иконка 20px, вокруг неё остаётся поле для пальца.</span></span></div>
+          <div class="cell"><span class="ms fill do">check_circle</span><span class="cell__main"><span>Анимации повторяют системные</span><span class="cell__sub" style="white-space:normal">Шторка с уменьшением экрана позади, сворачивающийся заголовок, «остров», пружины на нажатиях. Всё отключается в настройках и при системном «уменьшить движение».</span></span></div>
+          <div class="cell"><span class="ms fill dont">cancel</span><span class="cell__main"><span>Без градиентов, свечения, узоров, теней и эмодзи</span><span class="cell__sub" style="white-space:normal">Если элементу нужна глубина, он получает другой фон, а не тень.</span></span></div>
+        </div>
+      </section>
+
+      <section id="color"><h3>Цвет</h3>
+        <p>Системная палитра iOS. У каждого токена свой оттенок для тёмной темы — переключатель вверху перекрашивает всю страницу.</p>
+        <div class="swatches" id="sysColors"></div>
+        <div class="swatches" id="neutrals"></div>
+      </section>
+
+      <section id="type"><h3>Типографика</h3>
+        <p>SF Pro на устройствах Apple, Inter на остальных — он ближе всего к SF и загружается только там, где SF нет. Суммы набраны SF Rounded с моноширинными цифрами.</p>
+        <div class="group">
+          <div class="type-row"><code>Hero · Rounded 48/700</code><span class="rounded num" style="font-size:48px;font-weight:700;letter-spacing:-.5px;line-height:1.1">583 430 ₸</span></div>
+          <div class="type-row"><code>Large Title · 34/700</code><span class="t-large">Обзор</span></div>
+          <div class="type-row"><code>Title 1 · 28/700</code><span class="t-title1">Новый аккаунт</span></div>
+          <div class="type-row"><code>Title 2 · 22/700</code><span class="t-title2">Итоги октября</span></div>
+          <div class="type-row"><code>Title 3 · 20/600</code><span class="t-title3">Ноябрь 2026</span></div>
+          <div class="type-row"><code>Headline · 17/600</code><span class="t-headline">Новый расход</span></div>
+          <div class="type-row"><code>Body · 17/400</code><span>Такси домой из офиса</span></div>
+          <div class="type-row"><code>Subhead · 15/400</code><span class="t-subhead secondary">Осталось 20 000 ₸ · 29 дней</span></div>
+          <div class="type-row"><code>Footnote · 13/400</code><span class="t-footnote secondary" style="text-transform:uppercase">Сегодня</span></div>
+          <div class="type-row"><code>Caption · 12/400</code><span class="t-caption secondary">Подводится в конце месяца</span></div>
+        </div>
+      </section>
+
+      <section id="space"><h3>Отступы и сетка</h3>
+        <div class="grid">
+          <div class="panel"><div class="panel__label"><span>Шкала 4pt</span><code>--sp-1…8</code></div><div class="scale" id="spScale"></div></div>
+          <div class="panel"><div class="panel__label"><span>Раскладка</span></div>
+            <div class="group">
+              <div class="cell"><span class="cell__main">Поля экрана</span><span class="cell__value">16</span></div>
+              <div class="cell"><span class="cell__main">Между секциями</span><span class="cell__value">28</span></div>
+              <div class="cell"><span class="cell__main">Высота ячейки</span><span class="cell__value">44+</span></div>
+              <div class="cell"><span class="cell__main">Отступ разделителя</span><span class="cell__value">16 / 57 / 64</span></div>
+              <div class="cell"><span class="cell__main">Десктоп с</span><span class="cell__value">900 px ширины</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="shape"><h3>Форма и слои</h3>
+        <div class="grid">
+          <div class="panel"><div class="panel__label"><span>Скругления</span></div>
+            <div class="radii"><div style="border-radius:7px">7 иконка</div><div style="border-radius:9px">9 сегмент</div><div style="border-radius:10px">10 группа</div><div style="border-radius:12px">12 кнопка</div><div style="border-radius:14px">14 алерт</div><div style="border-radius:999px">капсула</div></div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Фоны вместо теней</span></div>
+            <div style="background:var(--bg);border-radius:10px;padding:12px;display:grid;gap:8px">
+              <span class="t-footnote secondary">--bg · экран</span>
+              <div style="background:var(--bg-2);border-radius:10px;padding:12px;display:grid;gap:8px"><span class="t-footnote secondary">--bg-2 · группа</span><div style="background:var(--fill-3);border-radius:8px;padding:10px" class="t-footnote">--fill-3 · поле, сегмент</div></div>
+            </div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Слои</span><code>--z-*</code></div>
+            <div class="layers"><div><span>Диалог</span><code>100</code></div><div><span>Уведомление</span><code>95</code></div><div><span>Итоги, награда</span><code>80</code></div><div><span>Меню</span><code>60</code></div><div><span>Шторка</span><code>40</code></div><div><span>Экран настроек</span><code>35</code></div><div><span>Таб-бар</span><code>30</code></div><div><span>Навбар</span><code>20</code></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="icons"><h3>Иконки</h3>
+        <p>Material Symbols Rounded, толщина 500. У активной вкладки иконка плавно заливается. В категориях — белый глиф на цветном квадрате.</p>
+        <div class="row" id="catSquares"></div>
+        <div class="icon-grid" id="iconGrid"></div>
+      </section>
+
+      <section id="motion"><h3>Движение</h3>
+        <div class="grid">
+          <div class="panel"><div class="panel__label"><span>Кривые</span><span>нажмите на дорожку</span></div>
+            <div class="ease"><code>ios · 520</code><button class="track" aria-label="ios"><span class="ball" style="transition:left var(--dur-4) var(--ease-ios)"></span></button></div>
+            <div class="ease"><code>spring · 360</code><button class="track" aria-label="spring"><span class="ball" style="transition:left var(--dur-3) var(--ease-spring)"></span></button></div>
+            <div class="ease"><code>out · 520</code><button class="track" aria-label="out"><span class="ball" style="transition:left var(--dur-4) var(--ease-out)"></span></button></div>
+            <div class="row t-footnote secondary"><span>120 нажатие</span>·<span>220 цвет</span>·<span>360 переключатели</span>·<span>520 появление</span></div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Именованные анимации</span><span>нажмите</span></div>
+            <div class="anim-demo" id="animStage"><div></div></div>
+            <div class="row" id="animBtns"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= ВВОД ================= -->
+    <div class="part"><h2>Ввод</h2>
+      <section id="fields"><h3>Текстовые поля</h3>
+        <p>Поле — белая плашка без рамки. Фокус — синий контур 1.5px, ошибка — красный контур и подсказка под полем. Крестик очистки появляется, когда есть текст.</p>
+        <div class="grid">
+          <div class="panel panel--bg"><div class="panel__label"><span>Состояния</span><code>.input</code></div>
+            <div><span class="label">Почта</span><label class="input js-input"><span class="ms">mail</span><input autocomplete="off" data-1p-ignore data-lpignore="true" id="f1" type="email" placeholder="you@example.kz"><button type="button" class="input__clear" aria-label="Очистить"><span class="ms">close</span></button></label></div>
+            <div><span class="label">Имя</span><label class="input has-value js-input"><span class="ms">person</span><input autocomplete="off" data-1p-ignore data-lpignore="true" id="f2" value="Денис"><button type="button" class="input__clear" aria-label="Очистить"><span class="ms">close</span></button></label></div>
+            <div><span class="label">С ошибкой</span><label class="input is-error has-value js-input"><span class="ms">mail</span><input autocomplete="off" data-1p-ignore data-lpignore="true" id="f3" value="denis@mail"><button type="button" class="input__clear" aria-label="Очистить"><span class="ms">close</span></button></label><div class="helper helper--error">Похоже, в адресе опечатка</div></div>
+            <div><span class="label">Недоступно</span><label class="input is-disabled"><span class="ms">lock</span><input autocomplete="off" data-1p-ignore data-lpignore="true" id="f4" value="Только для чтения" disabled></label></div>
+          </div>
+          <div class="panel panel--bg"><div class="panel__label"><span>Пароль и проверка</span></div>
+            <form class="stack" id="demoForm" novalidate autocomplete="off">
+              <label class="input js-input" id="pwBox"><span class="ms">lock</span><input id="f5" type="text" style="-webkit-text-security:disc" placeholder="Пароль" autocomplete="off" data-1p-ignore data-lpignore="true"><button type="button" class="pw-toggle" id="pwToggle" aria-label="Показать пароль" style="color:var(--label-3);width:30px;height:30px;display:grid;place-items:center"><span class="ms">visibility</span></button></label>
+              <div class="strength" id="strength" style="display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0 16px"><i></i><i></i><i></i><i></i></div>
+              <div class="helper" id="pwHelp" style="padding-top:0">Минимум 8 символов, лучше с цифрами и заглавными</div>
+              <button class="btn btn--filled" type="submit">Проверить</button>
+            </form>
+          </div>
+          <div class="panel panel--bg"><div class="panel__label"><span>Многострочное и с суффиксом</span></div>
+            <div><span class="label">Заметка</span><label class="input input--area"><textarea id="f6" maxlength="140" placeholder="Например: кофе и круассан с коллегой"></textarea></label><div class="helper">Видна только вам <span class="counter" id="areaCount">0 / 140</span></div></div>
+            <div><span class="label">Лимит</span><label class="input"><input autocomplete="off" data-1p-ignore data-lpignore="true" id="f7" inputmode="numeric" value="20 000"><span class="input__suffix">₸ в месяц</span></label></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="forms"><h3>Формы в списке</h3>
+        <p>Как в Настройках: подпись слева, значение или контрол справа. Используется в настройках и профиле.</p>
+        <div class="grid">
+          <div class="stack">
+            <div class="section"><div class="section__header">Профиль</div><div class="group">
+              <label class="cell" for="c1"><span>Имя</span><input autocomplete="off" data-1p-ignore data-lpignore="true" class="cell__input" id="c1" value="Денис"></label>
+              <label class="cell" for="c2"><span>Почта</span><input autocomplete="off" data-1p-ignore data-lpignore="true" class="cell__input" id="c2" type="email" placeholder="Не указана"></label>
+              <div class="cell"><span class="cell__main">Валюта</span><label class="select"><select id="c3" aria-label="Валюта"><option>Тенге, ₸</option><option>Рубль, ₽</option><option>Доллар, $</option></select></label></div>
+              <div class="cell"><span class="cell__main">Месяц с</span><div class="stepper js-stepper"><button aria-label="Меньше"><span class="ms">remove</span></button><b>10</b><button aria-label="Больше"><span class="ms">add</span></button></div></div>
+              <div class="cell"><span class="cell__main">Уведомления</span><button class="switch js-switch" role="switch" aria-checked="true" aria-label="Уведомления"></button></div>
+            </div><div class="section__footer">Подпись под группой объясняет, что делает настройка.</div></div>
+          </div>
+          <div class="stack">
+            <div class="section"><div class="section__header">Дата и время</div><div class="group">
+              <div class="cell"><span class="cell__main">Дата</span><input autocomplete="off" data-1p-ignore data-lpignore="true" type="date" id="c4" class="capsule" style="border:0;font:inherit" value="2026-11-01"></div>
+              <div class="cell"><span class="cell__main">Напоминание</span><input autocomplete="off" data-1p-ignore data-lpignore="true" type="time" id="c5" class="capsule" style="border:0;font:inherit" value="21:00"></div>
+            </div><div class="section__footer">Нативные пикеры браузера в оформлении капсулы.</div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="search"><h3>Поиск</h3>
+        <p>При фокусе справа выезжает «Отмена», при вводе появляется крестик. Список ниже фильтруется на лету.</p>
+        <div class="panel panel--bg" style="max-width:520px">
+          <div class="search" id="searchDemo"><label class="search__field" for="s1"><span class="ms">search</span><input autocomplete="off" data-1p-ignore data-lpignore="true" id="s1" type="search" placeholder="Поиск по категориям"><button type="button" class="input__clear" aria-label="Очистить"><span class="ms">close</span></button></label><button class="search__cancel">Отмена</button></div>
+          <div class="group" id="searchList"></div>
+        </div>
+      </section>
+
+      <section id="selects"><h3>Селекты и меню</h3>
+        <p>Нативный select выглядит как значение с двойной стрелкой. Pull-down меню раскрывается пружиной из точки нажатия, с галочкой у выбранного пункта.</p>
+        <div class="grid">
+          <div class="panel panel--bg"><div class="panel__label"><span>Нативный select</span><code>.select</code></div>
+            <div class="group">
+              <div class="cell"><span class="cell__main">Первый день недели</span><label class="select"><select id="sel1" aria-label="Первый день недели"><option>Понедельник</option><option>Воскресенье</option></select></label></div>
+              <div class="cell"><span class="cell__main">Период</span><label class="select select--tint"><select id="sel2" aria-label="Период"><option>Месяц</option><option>Неделя</option><option>Год</option></select></label></div>
+            </div>
+            <label class="select select--block"><select id="sel3" aria-label="Категория"><option>Такси</option><option>Кафе</option><option>Продукты</option></select></label>
+          </div>
+          <div class="panel panel--bg" style="min-height:300px"><div class="panel__label"><span>Pull-down меню</span><code>.menu</code></div>
+            <div class="row" style="justify-content:space-between">
+              <div class="menu-anchor"><button class="btn btn--tinted btn--small js-menu" data-menu="sort"><span class="ms">swap_vert</span>Сортировка</button></div>
+              <div class="menu-anchor"><button class="circle-btn circle-btn--tint js-menu" data-menu="more" aria-label="Ещё"><span class="ms">more_horiz</span></button></div>
+            </div>
+            <p class="t-footnote secondary">Сортировка: <b id="sortVal">по дате</b></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="choice"><h3>Выбор</h3>
+        <div class="grid">
+          <div class="panel panel--bg"><div class="panel__label"><span>Чекбоксы</span><code>.check</code></div>
+            <div class="group">
+              <div class="cell js-checkrow"><button class="check" role="checkbox" aria-checked="true" aria-label="Перенести данные"><span class="ms">check</span></button><span class="cell__main">Перенести данные</span></div>
+              <div class="cell js-checkrow"><button class="check" role="checkbox" aria-checked="false" aria-label="Еженедельный отчёт" style="--c:var(--orange)"><span class="ms">check</span></button><span class="cell__main">Еженедельный отчёт</span></div>
+              <div class="cell js-checkrow"><button class="check check--square" role="checkbox" aria-checked="false" aria-label="Квадратный"><span class="ms">check</span></button><span class="cell__main">Квадратный вариант</span></div>
+            </div>
+          </div>
+          <div class="panel panel--bg"><div class="panel__label"><span>Радио-список</span><code>.cell__tick</code></div>
+            <div class="group" role="radiogroup" id="radioList">
+              <button class="cell" role="radio" aria-checked="true"><span class="cell__main">Авто</span><span class="ms cell__tick">check</span></button>
+              <button class="cell" role="radio" aria-checked="false"><span class="cell__main">Светлая</span><span class="ms cell__tick">check</span></button>
+              <button class="cell" role="radio" aria-checked="false"><span class="cell__main">Тёмная</span><span class="ms cell__tick">check</span></button>
+            </div>
+          </div>
+          <div class="panel panel--bg"><div class="panel__label"><span>Сегменты, капсулы, переключатель</span></div>
+            <div class="seg js-seg" style="--n:2"><span class="seg__thumb"></span><button aria-pressed="true">Расход</button><button aria-pressed="false">Доход</button></div>
+            <div class="seg js-seg" style="--n:3"><span class="seg__thumb"></span><button aria-pressed="false">Неделя</button><button aria-pressed="true">Месяц</button><button aria-pressed="false">Год</button></div>
+            <div class="row js-caps"><button class="capsule" aria-pressed="true">Сегодня</button><button class="capsule" aria-pressed="false">Вчера</button><button class="capsule" aria-pressed="false"><span class="ms">calendar_month</span>Дата</button></div>
+            <div class="row"><button class="switch js-switch" role="switch" aria-checked="true" aria-label="Вкл"></button><button class="switch js-switch" role="switch" aria-checked="false" aria-label="Выкл"></button></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="range"><h3>Слайдер и степпер</h3>
+        <div class="grid">
+          <div class="panel panel--bg"><div class="panel__label"><span>Слайдер</span><code>.slider</code></div>
+            <div class="group" style="padding:12px 16px;display:grid;gap:4px">
+              <div class="row" style="justify-content:space-between"><span>Лимит на такси</span><b class="num" id="slVal">20 000 ₸</b></div>
+              <div class="slider-row"><span class="t-footnote">5к</span><input type="range" class="slider" id="sl1" min="5000" max="100000" step="1000" value="20000" aria-label="Лимит"><span class="t-footnote">100к</span></div>
+            </div>
+            <div class="group" style="padding:6px 16px"><div class="slider-row"><span class="ms">volume_down</span><input type="range" class="slider" id="sl2" min="0" max="100" value="60" style="--c:var(--green)" aria-label="Громкость"><span class="ms">volume_up</span></div></div>
+          </div>
+          <div class="panel panel--bg"><div class="panel__label"><span>Степпер</span><code>.stepper</code></div>
+            <div class="group">
+              <div class="cell"><span class="cell__main">Месяц начинается</span><div class="stepper js-stepper"><button aria-label="Меньше"><span class="ms">remove</span></button><b>1</b><button aria-label="Больше"><span class="ms">add</span></button></div></div>
+              <div class="cell"><span class="cell__main">Дней подряд для награды</span><div class="stepper js-stepper"><button aria-label="Меньше"><span class="ms">remove</span></button><b>7</b><button aria-label="Больше"><span class="ms">add</span></button></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="wheel"><h3>Барабан</h3>
+        <p>Как системный пикер: прокрутка со щелчком к строке, строки наклоняются в 3D по мере удаления от центра.</p>
+        <div class="grid">
+          <div class="panel panel--bg"><div class="panel__label"><span>Месяц и год</span><code>.wheel</code></div>
+            <div class="wheel" id="wheel"><div class="wheel__col" data-col="m"></div><div class="wheel__col" data-col="y" style="max-width:110px"></div></div>
+            <p class="t-subhead" style="text-align:center">Выбрано: <b id="wheelVal"></b></p>
+          </div>
+        </div>
+      </section>
+
+      <section id="amount"><h3>Сумма и клавиатура</h3>
+        <p>Сумма набирается своей клавиатурой со сложением и вычитанием. Клавиши подсвечиваются при нажатии, без масштабирования — как системная клавиатура.</p>
+        <div class="grid">
+          <div class="panel panel--bg">
+            <div style="text-align:center"><div class="t-subhead secondary num" id="padExpr" style="min-height:20px"></div><div class="rounded num" id="padOut" style="font-size:48px;font-weight:700;letter-spacing:-.5px">0<span style="color:var(--label-3);font-size:30px;margin-left:4px">₸</span></div></div>
+            <div class="pad" id="pad"></div>
+          </div>
+          <div class="panel panel--bg"><div class="panel__label"><span>Поле суммы</span><code>.input--money</code></div>
+            <label class="input input--money"><input autocomplete="off" data-1p-ignore data-lpignore="true" id="money" inputmode="numeric" value="12 450"><span class="input__suffix">₸</span></label>
+            <div class="helper">Пробелы между разрядами ставятся сами</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="pickers"><h3>Цвет и иконка</h3>
+        <div class="grid">
+          <div class="panel panel--bg"><div class="panel__label"><span>Новая категория</span></div>
+            <div style="display:grid;justify-items:center"><span class="sq sq--lg" id="pickPreview" style="--c:var(--blue)"><span class="ms">directions_bus</span></span></div>
+            <div class="group colors" id="colorPick"></div>
+            <div class="group icons" id="iconPick" style="--c:var(--blue)"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= ПОКАЗ ================= -->
+    <div class="part"><h2>Показ</h2>
+      <section id="cells"><h3>Ячейки</h3>
+        <div class="grid">
+          <div class="stack"><div class="section"><div class="section__header">Варианты</div><div class="group">
+            <button class="cell cell--icon"><span class="sq" style="--c:var(--blue)"><span class="ms">download</span></span><span class="cell__main">С иконкой и стрелкой</span><span class="ms cell__chev">chevron_right</span></button>
+            <div class="cell cell--icon"><span class="sq" style="--c:var(--green)"><span class="ms">sync</span></span><span class="cell__main">Со значением</span><span class="cell__value">Включена</span></div>
+            <button class="cell cell--icon"><span class="sq" style="--c:var(--red)"><span class="ms">notifications</span></span><span class="cell__main">Со счётчиком</span><span class="count">3</span><span class="ms cell__chev">chevron_right</span></button>
+            <div class="cell cell--icon"><span class="sq" style="--c:var(--orange)"><span class="ms">emoji_events</span></span><span class="cell__main"><span>С подзаголовком</span><span class="cell__sub">Вторая строка поясняет первую</span></span></div>
+            <div class="cell cell--icon"><span class="sq" style="--c:var(--indigo)"><span class="ms">tag</span></span><span class="cell__main">С тегом</span><span class="tag" style="--c:var(--green)">Новое</span></div>
+          </div></div>
+          <div class="group"><button class="cell cell--destructive">Удаляющее действие</button></div></div>
+          <div class="stack"><div class="section"><div class="section__header"><span>Операции · смахните влево</span><span>−14 550 ₸</span></div><div class="group" id="txDemo"></div></div>
+            <div class="group disclosure" id="disc">
+              <button class="cell disclosure__head"><span class="cell__main">Раскрывающаяся ячейка</span><span class="ms disclosure__chev">chevron_right</span></button>
+              <div class="disclosure__body"><div><div class="cell"><span class="cell__main">Продукты</span><span class="cell__value">146 800 ₸</span></div><div class="cell"><span class="cell__main">Кафе</span><span class="cell__value">72 450 ₸</span></div></div></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="tags"><h3>Теги, счётчики, аватары</h3>
+        <div class="grid">
+          <div class="panel"><div class="panel__label"><span>Теги</span><code>.tag</code></div>
+            <div class="row"><span class="tag" style="--c:var(--green)"><span class="ms">south_west</span>Доход</span><span class="tag" style="--c:var(--red)"><span class="ms">north_east</span>Расход</span><span class="tag" style="--c:var(--orange)">Награда</span><span class="tag" style="--c:var(--indigo)">Итоги</span><span class="tag">Архив</span><span class="tag tag--solid" style="--c:var(--tint)">PRO</span></div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Счётчики и точки</span><code>.count .dot</code></div>
+            <div class="row"><span class="count">1</span><span class="count">12</span><span class="count">99+</span><span class="dot" style="--c:var(--green)"></span><span class="dot" style="--c:var(--orange)"></span><span class="dot" style="--c:var(--red)"></span></div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Аватары</span><code>.avatar</code></div>
+            <div class="row"><span class="avatar avatar--sm" style="--c:var(--blue)">Д</span><span class="avatar" style="--c:var(--green)">АС</span><span class="avatar avatar--lg" style="--c:var(--orange)">Д</span><span class="avatar-stack"><span class="avatar" style="--c:var(--pink)">М</span><span class="avatar" style="--c:var(--indigo)">А</span><span class="avatar" style="--c:var(--gray)">+3</span></span></div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Подсказка</span><code>.tip</code></div>
+            <div class="row"><span class="tip"><button class="circle-btn" aria-label="Что это"><span class="ms">help</span></button><span class="tip__bubble">Баланс за всё время</span></span><span class="t-footnote secondary">наведите или сфокусируйте</span></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="progress"><h3>Прогресс и загрузка</h3>
+        <div class="grid">
+          <div class="panel"><div class="panel__label"><span>Линейный</span><code>.progress</code></div>
+            <div class="progress" style="--p:.3;--c:var(--green)"><i></i></div>
+            <div class="progress" style="--p:.86;--c:var(--orange)"><i></i></div>
+            <div class="progress" style="--p:1;--c:var(--red)"><i></i></div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Кольца</span><code>.ring</code></div>
+            <div class="row" id="rings"></div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Спиннер и скелетон</span><code>.spinner .skeleton</code></div>
+            <div class="row" id="spinners"></div>
+            <div class="group" style="padding:12px 16px;display:grid;gap:10px">
+              <div class="row" style="flex-wrap:nowrap"><span class="skeleton" style="width:36px;height:36px;border-radius:9px;flex:none"></span><div style="flex:1;display:grid;gap:6px"><span class="skeleton" style="height:12px;width:60%"></span><span class="skeleton" style="height:10px;width:40%"></span></div><span class="skeleton" style="height:12px;width:60px"></span></div>
+              <div class="row" style="flex-wrap:nowrap"><span class="skeleton" style="width:36px;height:36px;border-radius:9px;flex:none"></span><div style="flex:1;display:grid;gap:6px"><span class="skeleton" style="height:12px;width:50%"></span><span class="skeleton" style="height:10px;width:30%"></span></div><span class="skeleton" style="height:12px;width:50px"></span></div>
+            </div>
+          </div>
+          <div class="panel"><div class="panel__label"><span>Индикатор страниц</span><code>.dots</code></div>
+            <div class="group" style="padding:20px 16px;text-align:center"><div class="t-headline" id="dotsTitle">Учёт за 3 нажатия</div><div class="t-subhead secondary" id="dotsSub" style="margin:4px 0 16px">Сумма, категория, готово</div><div class="dots" id="dots"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="banners"><h3>Баннеры и пустые состояния</h3>
+        <div class="grid">
+          <div class="stack" id="bannerList">
+            <div class="banner"><span class="ms">info</span><div class="banner__main"><b>Сделайте бэкап</b><span>Последний был 3 недели назад.</span></div><button class="js-dismiss">Скачать</button></div>
+            <div class="banner banner--success"><span class="ms">check_circle</span><div class="banner__main"><b>Лимит соблюдён</b><span>На такси ушло 14 150 из 20 000 ₸.</span></div></div>
+            <div class="banner banner--warning"><span class="ms">warning</span><div class="banner__main"><b>Осталось 3 200 ₸</b><span>Кафе почти упёрлось в лимит.</span></div></div>
+            <div class="banner banner--error"><span class="ms">error</span><div class="banner__main"><b>Файл не прочитался</b><span>Выберите бэкап из «Скачать бэкап».</span></div><button class="js-dismiss">Закрыть</button></div>
+          </div>
+          <div class="panel"><div class="empty"><span class="ms">receipt_long</span><b>Записей пока нет</b><p>Нажмите «+», чтобы добавить первую трату. Это займёт три нажатия.</p><button class="btn btn--filled btn--small"><span class="ms">add</span>Добавить</button></div></div>
+        </div>
+      </section>
+
+      <section id="money"><h3>Рассрочки и депозиты</h3>
+        <p>Рассрочка — фиолетовая, с прогрессом платежей и датой следующего. Депозит — зелёный, проценты «капают» на глазах. Ставок две, как в банке: эффективная (ГЭСВ) и номинальная — вводится любая, вторая считается по формуле <code>(1 + ном/12)^12 − 1</code>.</p>
+        <div class="grid">
+          <div class="stack"><div class="section"><div class="section__header"><span>Рассрочки</span><span>540 000 ₸</span></div><div class="group">
+            <div class="cell cell--icon"><span class="sq" style="--c:var(--purple)"><span class="ms">credit_card</span></span><div style="flex:1;display:grid;gap:8px;min-width:0"><div style="display:flex;justify-content:space-between;gap:8px"><span>iPhone 16</span><span class="cell__value t-subhead">3 из 12</span></div><div class="progress" style="--p:.25;--c:var(--purple)"><i></i></div><span class="t-footnote" style="color:var(--orange)">45 000 ₸ · через 2 дня</span></div></div>
+            <div class="cell cell--icon"><span class="sq" style="--c:var(--gray)"><span class="ms">task_alt</span></span><span class="cell__main secondary">Выплачено полностью: 1</span></div>
+          </div></div>
+          <div class="group">
+            <div class="cell"><span class="ms fill" style="color:var(--green)">check_circle</span><span class="cell__main secondary">10 октября 2026</span><span class="cell__value">45 000 ₸</span></div>
+            <div class="cell"><span class="ms" style="color:var(--orange)">radio_button_unchecked</span><span class="cell__main">10 ноября 2026</span><span class="cell__value">45 000 ₸</span></div>
+            <div class="cell"><span class="ms" style="color:var(--label-3)">radio_button_unchecked</span><span class="cell__main">10 декабря 2026</span><span class="cell__value">45 000 ₸</span></div>
+          </div></div>
+          <div class="card" style="justify-items:center;text-align:center">
+            <div class="t-footnote secondary" style="text-transform:uppercase">На депозите</div>
+            <div class="rounded num" style="font-size:34px;font-weight:700" id="depBal">405 512<span style="font-size:20px;color:var(--label-2);margin-left:3px">₸</span></div>
+            <div class="t-subhead num" style="color:var(--green)" id="depInt">+5 512,00 ₸ процентов</div>
+            <div class="progress" style="width:100%;--p:.19;--c:var(--green)"><i></i></div>
+            <div class="t-subhead secondary">19% ГЭСВ · 17,52% номинальная</div><div class="t-subhead secondary">к концу срока ≈ 471 500 ₸</div>
+            <div class="banner banner--success" style="width:100%;text-align:left"><span class="ms">trending_up</span><div class="banner__main"><b>≈ 345 600 ₸ через 12 мес.</b><span>Доход 45 600 ₸, если не пополнять.</span></div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="awards"><h3>Награды</h3>
+        <p>Бейдж — системный цвет и кольцо прогресса, как в «Активности». Ступени: бронза, серебро, золото. Закрытые показывают прогресс. Нажмите, чтобы увидеть анимацию получения.</p>
+        <div class="panel"><div class="row" id="badgeDemo" style="justify-content:space-around;gap:20px"></div></div>
+      </section>
+
+      <section id="data"><h3>Календарь и графики</h3>
+        <div class="grid">
+          <div class="panel"><div class="panel__label"><span>Календарь</span><code>.cal .day</code></div><div class="cal" id="calDemo"></div></div>
+          <div class="panel"><div class="panel__label"><span>Столбики и доли</span></div>
+            <div><div class="t-footnote secondary" style="text-transform:uppercase">Потрачено</div><div class="rounded num" style="font-size:30px;font-weight:700">504 430<span style="color:var(--label-2);font-size:18px;margin-left:3px">₸</span></div></div>
+            <div class="chart-mini" id="chartMini"></div>
+            <div class="stackbar"><i style="--p:.36;--c:var(--indigo)"></i><i style="--p:.29;--c:var(--orange)"></i><i style="--p:.14;--c:var(--brown)"></i><i style="--p:.1;--c:var(--teal)"></i><i style="--p:.11;--c:var(--gray)"></i></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= СЛОИ ================= -->
+    <div class="part"><h2>Слои</h2>
+      <section id="dialogs"><h3>Алерты и action sheet</h3>
+        <p>Алерт — для подтверждения необратимого. Action sheet — когда у одного действия несколько вариантов. Оба на материале с размытием, без теней.</p>
+        <div class="row">
+          <button class="btn btn--tinted btn--small" id="openAlert">Алерт из двух кнопок</button>
+          <button class="btn btn--tinted btn--small" id="openAlert3">Алерт из трёх</button>
+          <button class="btn btn--tinted btn--small" id="openPrompt">Алерт с полем</button>
+          <button class="btn btn--tinted btn--small" id="openActions">Action sheet</button>
+        </div>
+      </section>
+
+      <section id="sheets"><h3>Шторка и уведомления</h3>
+        <p>На телефоне шторка выезжает снизу и тянется за ручку, на десктопе открывается окном по центру. Уведомление вырастает из «острова» сверху.</p>
+        <div class="row">
+          <button class="btn btn--tinted btn--small" id="openSheet">Открыть шторку</button>
+          <button class="btn btn--tinted btn--small" id="islandOk">Уведомление</button>
+          <button class="btn btn--tinted btn--small" id="islandUndo">С отменой</button>
+          <button class="btn btn--tinted btn--small" id="islandErr">Ошибка</button>
+        </div>
+      </section>
+
+      <section id="nav"><h3>Навигация</h3>
+        <div class="grid grid--2">
+          <div class="panel panel--bg"><div class="panel__label"><span>Большой заголовок · прокрутите</span><code>.nav .large-title</code></div>
+            <div class="navdemo"><div class="navdemo__scroll" id="navScroll">
+              <div class="nav" id="navBar"><div class="nav__l"><button class="back"><span class="ms">chevron_left</span>Назад</button></div><div class="nav__title">Настройки</div><div class="nav__r"><button class="btn btn--plain is-bold">Готово</button></div></div>
+              <h1 class="t-large large-title">Настройки</h1>
+              <div style="padding:8px 16px 16px;display:grid;gap:20px"><div class="group" id="navFill"></div></div>
+            </div></div>
+          </div>
+          <div class="stack">
+            <div class="panel panel--bg"><div class="panel__label"><span>Таб-бар</span><code>.tabbar</code></div>
+              <div class="tabdemo"><nav class="tabbar" id="tabDemo" style="padding-bottom:6px">
+                <button class="tab" aria-current="page"><span class="ms fill">home</span><span>Обзор</span></button>
+                <button class="tab"><span class="ms">calendar_month</span><span>Календарь</span></button>
+                <button class="tab tab--add"><span class="ms fill">add_circle</span><span>Добавить</span></button>
+                <button class="tab"><span class="ms">bar_chart</span><span>Статистика</span></button>
+                <button class="tab"><span class="ms">emoji_events</span><span>Награды</span></button>
+              </nav></div>
+            </div>
+            <div class="panel panel--bg"><div class="panel__label"><span>Тулбар и кнопки навбара</span><code>.toolbar</code></div>
+              <div class="toolbar" style="border-radius:10px"><button class="btn btn--plain"><span class="ms">ios_share</span></button><span class="t-footnote secondary">Обновлено только что</span><button class="btn btn--plain"><span class="ms">edit_square</span></button></div>
+              <div class="row"><button class="back"><span class="ms">chevron_left</span>Назад</button><button class="btn btn--plain">Отмена</button><button class="btn btn--plain is-bold">Готово</button><button class="circle-btn" aria-label="Закрыть"><span class="ms">close</span></button><button class="circle-btn circle-btn--tint" aria-label="Добавить"><span class="ms">add</span></button></div>
+            </div>
+            <div class="panel panel--bg"><div class="panel__label"><span>Кнопки</span><code>.btn</code></div>
+              <button class="btn btn--filled">Основное действие</button>
+              <div class="row"><button class="btn btn--tinted btn--small">Тонированная</button><button class="btn btn--small">Серая</button><button class="btn btn--destructive btn--small">Удалить</button><button class="btn btn--filled btn--small" disabled style="opacity:.4">Недоступна</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= ЭКРАНЫ ================= -->
+    <div class="part"><h2>Экраны</h2>
+      <section id="screens"><h3>Живой прототип</h3>
+        <p>Тот же код в трёх рамках. Всё кликается, данные хранятся в IndexedDB этого браузера. Шире 900px таб-бар становится сайдбаром как в iPadOS.</p>
+        <div class="phones">
+          <div><div class="phone"><iframe src="prototype.html?embed=1#home" title="Прототип: обзор" loading="lazy"></iframe></div><div class="cap">Обзор</div></div>
+          <div><div class="phone"><iframe src="prototype.html?embed=1#auth" title="Прототип: вход" loading="lazy"></iframe></div><div class="cap">Вход и регистрация</div></div>
+        </div>
+        <div><div class="desk-scale" id="deskScale"><div class="desk" id="desk"><iframe src="prototype.html?embed=1#stats" title="Прототип на десктопе" loading="lazy"></iframe></div></div><div class="cap">Десктоп · 1280 × 800, уменьшено</div></div>
+      </section>
+
+      <section id="voice"><h3>Тексты</h3>
+        <p>Говорим просто, на «вы», без восклицаний в системных сообщениях. Кнопка называет действие, уведомление повторяет его.</p>
+        <div class="table-wrap"><table class="voice"><thead><tr><th>Так</th><th>Не так</th></tr></thead><tbody>
+          <tr><td>Такси: −2 100 ₸</td><td>Операция успешно сохранена!</td></tr>
+          <tr><td>Введите сумму</td><td>Ошибка: значение не может быть пустым</td></tr>
+          <tr><td>Похоже, в адресе опечатка</td><td>Невалидный email</td></tr>
+          <tr><td>Записей пока нет</td><td>Нет данных</td></tr>
+          <tr><td>Стереть все данные?</td><td>Вы уверены?</td></tr>
+          <tr><td>На такси на 57% меньше, чем в сентябре</td><td>Показатель категории снизился</td></tr>
+        </tbody></table></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const $$ = s => [...document.querySelectorAll(s)];
+  const root = document.documentElement;
+  const hostTheme = root.getAttribute('data-theme');
+  const nf = new Intl.NumberFormat('ru-RU');
+  const ms = (n, fill) => `<span class="ms${fill ? ' fill' : ''}">${n}</span>`;
+
+  /* тема */
+  const bindSeg = (seg, onPick) => {
+    const btns = [...seg.querySelectorAll('button')];
+    const pick = i => { btns.forEach((b, j) => b.setAttribute('aria-pressed', String(i === j))); seg.style.setProperty('--i', i); onPick && onPick(btns[i]); };
+    btns.forEach((b, i) => b.addEventListener('click', () => pick(i)));
+    const cur = btns.findIndex(b => b.getAttribute('aria-pressed') === 'true');
+    pick(cur < 0 ? 0 : cur);
+  };
+  $('#themeSeg').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === (hostTheme || 'system'))));
+  bindSeg($('#themeSeg'), b => { const v = b.dataset.v; if (v === 'system') { hostTheme ? root.setAttribute('data-theme', hostTheme) : root.removeAttribute('data-theme'); } else root.setAttribute('data-theme', v); });
+  $$('.js-seg').forEach(s => bindSeg(s));
+  $$('.js-caps').forEach(g => g.addEventListener('click', e => { const c = e.target.closest('.capsule'); if (c) g.querySelectorAll('.capsule').forEach(x => x.setAttribute('aria-pressed', String(x === c))); }));
+  $$('.js-switch').forEach(s => s.addEventListener('click', () => s.setAttribute('aria-checked', String(s.getAttribute('aria-checked') !== 'true'))));
+  $$('.track').forEach(t => t.addEventListener('click', () => t.classList.toggle('play')));
+
+  /* оглавление подсвечивает текущий раздел */
+  const links = $$('#toc a');
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) links.forEach(a => a.classList.toggle('is-on', a.getAttribute('href') === '#' + e.target.id)); }), { rootMargin: '-20% 0px -70% 0px' });
+  $$('main section[id]').forEach(s => io.observe(s));
+
+  /* цвета */
+  const SYS = [['blue', 'Синий', 'действие, ссылки', '#007AFF', '#0A84FF'], ['green', 'Зелёный', 'доход, успех', '#34C759', '#30D158'], ['red', 'Красный', 'расход, удаление', '#FF3B30', '#FF453A'], ['orange', 'Оранжевый', 'награды, предупреждение', '#FF9500', '#FF9F0A'], ['yellow', 'Жёлтый', 'такси', '#FFCC00', '#FFD60A'], ['indigo', 'Индиго', 'итоги, дом', '#5856D6', '#5E5CE6'], ['purple', 'Фиолетовый', 'развлечения', '#AF52DE', '#BF5AF2'], ['pink', 'Розовый', 'здоровье', '#FF2D55', '#FF375F'], ['teal', 'Бирюзовый', 'одежда', '#30B0C7', '#40C8E0'], ['mint', 'Мятный', 'фриланс', '#00C7BE', '#63E6E2'], ['cyan', 'Голубой', 'подписки', '#32ADE6', '#64D2FF'], ['brown', 'Коричневый', 'кафе, бронза', '#A2845E', '#AC8E68'], ['gray', 'Серый', 'прочее, серебро', '#8E8E93', '#8E8E93']];
+  $('#sysColors').innerHTML = SYS.map(([v, n, r, l, d]) => `<div class="sw" style="--c:var(--${v})"><i></i><div><b>${n}</b><span>${r}</span><span>${l} · ${d}</span></div></div>`).join('');
+  const NEU = [['bg', 'Экран', 'grouped background'], ['bg-2', 'Группа', 'secondary grouped'], ['label', 'Текст', 'label'], ['label-2', 'Подпись', 'secondary label'], ['label-3', 'Плейсхолдер', 'tertiary label'], ['sep', 'Разделитель', 'линия 0.5px'], ['fill-3', 'Заливка', 'поля, сегменты'], ['highlight', 'Нажатие', 'подсветка ячейки'], ['menu-bg', 'Материал', 'меню, алерты']];
+  $('#neutrals').innerHTML = NEU.map(([v, n, r]) => `<div class="sw" style="--c:var(--${v})"><i style="box-shadow:inset 0 0 0 .5px var(--sep)"></i><div><b>${n}</b><span>${r}</span><code>--${v}</code></div></div>`).join('');
+
+  $('#spScale').innerHTML = [4, 8, 12, 16, 20, 24, 32, 44].map((n, i) => `<div><code>--sp-${i + 1}</code><span class="num">${n}</span><i style="width:${n * 4}px"></i></div>`).join('');
+
+  /* иконки */
+  const CATS = [['shopping_cart', 'orange', 'Продукты'], ['local_cafe', 'brown', 'Кафе'], ['local_taxi', 'yellow', 'Такси'], ['directions_bus', 'blue', 'Транспорт'], ['home', 'indigo', 'Дом'], ['medication', 'pink', 'Здоровье'], ['movie', 'purple', 'Развлечения'], ['checkroom', 'teal', 'Одежда'], ['autorenew', 'cyan', 'Подписки'], ['smartphone', 'gray', 'Связь'], ['work', 'green', 'Зарплата'], ['laptop_mac', 'mint', 'Фриланс']];
+  $('#catSquares').innerHTML = CATS.map(([i, c, n]) => `<span class="tip"><span class="sq sq--md" style="--c:var(--${c})">${ms(i)}</span><span class="tip__bubble">${n}</span></span>`).join('');
+  const UI_ICONS = ['home', 'calendar_month', 'bar_chart', 'emoji_events', 'add_circle', 'settings', 'search', 'mail', 'lock', 'visibility', 'person', 'cloud_sync', 'sync', 'download', 'upload', 'table_view', 'delete', 'edit_square', 'ios_share', 'check_circle', 'error', 'warning', 'info', 'help', 'close', 'chevron_right', 'unfold_more', 'local_fire_department', 'savings', 'auto_awesome'];
+  $('#iconGrid').innerHTML = UI_ICONS.map(n => `<div>${ms(n)}<span>${n}</span></div>`).join('');
+
+  /* именованные анимации */
+  const ANIMS = [['rise', 'rise 520ms var(--ease-out)'], ['pop', 'pop 360ms var(--ease-spring)'], ['shake', 'shake 400ms var(--ease-ios)'], ['badge-in', 'badge-in 1s var(--ease-out)'], ['alert-pop', 'alert-pop 320ms var(--ease-spring)'], ['menu-in', 'menu-in 420ms var(--ease-spring)']];
+  $('#animBtns').innerHTML = ANIMS.map(([n]) => `<button class="capsule" data-a="${n}">${n}</button>`).join('');
+  $('#animBtns').addEventListener('click', e => { const b = e.target.closest('[data-a]'); if (!b) return; const box = $('#animStage > div'); box.style.animation = 'none'; box.offsetWidth; box.style.animation = ANIMS.find(a => a[0] === b.dataset.a)[1]; });
+
+  /* поля */
+  $$('.js-input').forEach(l => { const inp = l.querySelector('input'); const upd = () => l.classList.toggle('has-value', !!inp.value); inp.addEventListener('input', () => { upd(); l.classList.remove('is-error'); l.nextElementSibling?.classList.contains('helper--error') && l.nextElementSibling.remove(); }); l.querySelector('.input__clear')?.addEventListener('click', e => { e.preventDefault(); inp.value = ''; upd(); inp.focus(); }); });
+  const LV = [null, ['Слабый', 'var(--red)'], ['Средний', 'var(--orange)'], ['Хороший', 'var(--yellow)'], ['Надёжный', 'var(--green)']];
+  const score = p => !p ? 0 : Math.min(4, (p.length >= 8) + /\d/.test(p) + (/[a-zа-я]/.test(p) && /[A-ZА-Я]/.test(p)) + /[^\w\sа-яА-Я]/.test(p) + (p.length >= 12) - (p.length < 8)) || 1;
+  const pw = $('#f5');
+  pw.addEventListener('input', () => { const sc = score(pw.value); $$('#strength i').forEach((i, k) => { i.style.background = k < sc ? LV[sc][1] : 'var(--fill-3)'; i.style.transition = 'background var(--dur-3)'; i.style.height = '4px'; i.style.borderRadius = '2px'; }); $('#pwHelp').textContent = pw.value ? LV[sc][0] + ' пароль' : 'Минимум 8 символов, лучше с цифрами и заглавными'; $('#pwHelp').className = 'helper'; $('#pwBox').classList.remove('is-error'); });
+  pw.dispatchEvent(new Event('input'));
+  $('#pwToggle').addEventListener('click', () => { const show = pw.style.webkitTextSecurity !== 'none'; pw.style.webkitTextSecurity = show ? 'none' : 'disc'; $('#pwToggle').innerHTML = ms(show ? 'visibility_off' : 'visibility'); });
+  $('#demoForm').addEventListener('submit', e => { e.preventDefault(); const box = $('#pwBox'); if (pw.value.length < 8) { box.classList.remove('is-shake'); box.offsetWidth; box.classList.add('is-error', 'is-shake'); $('#pwHelp').textContent = pw.value ? 'Пароль короче 8 символов' : 'Введите пароль'; $('#pwHelp').className = 'helper helper--error'; } else island('Пароль подходит', 'check_circle', 'var(--green)'); });
+  $('#f6').addEventListener('input', e => $('#areaCount').textContent = `${e.target.value.length} / 140`);
+  const fmtInput = inp => inp.addEventListener('input', () => { const d = inp.value.replace(/\D/g, '').slice(0, 9); inp.value = d ? nf.format(+d) : ''; });
+  fmtInput($('#f7')); fmtInput($('#money'));
+
+  /* степпер */
+  $$('.js-stepper').forEach(st => { const b = st.querySelector('b'); const [minus, plus] = st.querySelectorAll('button'); const upd = d => { const v = Math.min(28, Math.max(1, +b.textContent + d)); b.textContent = v; minus.disabled = v <= 1; plus.disabled = v >= 28; }; minus.onclick = () => upd(-1); plus.onclick = () => upd(1); upd(0); });
+
+  /* поиск */
+  const ITEMS = CATS.map(([i, c, n]) => ({ i, c, n }));
+  const renderList = q => { const list = ITEMS.filter(x => x.n.toLowerCase().includes(q.toLowerCase())); $('#searchList').innerHTML = list.length ? list.slice(0, 5).map(x => `<div class="cell cell--icon"><span class="sq" style="--c:var(--${x.c})">${ms(x.i)}</span><span class="cell__main">${x.n}</span></div>`).join('') : `<div class="empty" style="padding:20px">${ms('search')}<b>Ничего не нашлось</b></div>`; };
+  const sBox = $('#searchDemo'), sInp = $('#s1'), sField = sBox.querySelector('.search__field');
+  sInp.addEventListener('focus', () => sBox.classList.add('is-active'));
+  sInp.addEventListener('blur', () => { if (!sInp.value) sBox.classList.remove('is-active'); });
+  sInp.addEventListener('input', () => { sField.classList.toggle('has-value', !!sInp.value); renderList(sInp.value); });
+  sField.querySelector('.input__clear').addEventListener('mousedown', e => e.preventDefault());
+  sField.querySelector('.input__clear').addEventListener('click', () => { sInp.value = ''; sField.classList.remove('has-value'); renderList(''); });
+  sBox.querySelector('.search__cancel').addEventListener('mousedown', e => e.preventDefault());
+  sBox.querySelector('.search__cancel').addEventListener('click', () => { sInp.value = ''; sField.classList.remove('has-value'); renderList(''); sInp.blur(); sBox.classList.remove('is-active'); });
+  renderList('');
+
+  /* меню */
+  const MENUS = {
+    sort: { title: 'Сортировать', check: true, items: [['по дате', 'schedule'], ['по сумме', 'payments'], ['по категории', 'category']] },
+    more: { items: [['Скачать бэкап', 'download'], ['Экспорт в CSV', 'table_view'], ['Поделиться', 'ios_share'], ['gap'], ['Стереть всё', 'delete', 'destructive']] },
+  };
+  let openMenu = null;
+  const closeMenu = () => { if (!openMenu) return; const m = openMenu; openMenu = null; m.classList.add('is-closing'); setTimeout(() => m.remove(), 180); };
+  document.addEventListener('click', e => {
+    const t = e.target.closest('.js-menu');
+    if (t) {
+      e.stopPropagation(); const had = openMenu && openMenu.parentElement === t.parentElement; closeMenu(); if (had) return;
+      const cfg = MENUS[t.dataset.menu], cur = $('#sortVal').textContent;
+      const m = document.createElement('div'); m.className = 'menu' + (t.dataset.menu === 'sort' ? ' menu--left' : ''); m.setAttribute('role', 'menu');
+      m.innerHTML = (cfg.title ? `<div class="menu__title">${cfg.title}</div>` : '') + cfg.items.map(([l, i, st]) => l === 'gap' ? '<div class="menu__gap"></div>' : `<button class="menu__item${st ? ' menu__item--destructive' : ''}" role="menuitem" ${cfg.check ? `aria-checked="${l === cur}"` : ''} data-l="${l}">${cfg.check ? '<span class="ms menu__tick">check</span>' : ''}<span>${l}</span>${ms(i)}</button>`).join('');
+      t.parentElement.append(m); openMenu = m; return;
+    }
+    const item = e.target.closest('.menu__item');
+    if (item) { if (item.hasAttribute('aria-checked')) $('#sortVal').textContent = item.dataset.l; else island(item.dataset.l, item.classList.contains('menu__item--destructive') ? 'delete' : 'check_circle', item.classList.contains('menu__item--destructive') ? 'var(--red)' : 'var(--green)'); closeMenu(); return; }
+    if (!e.target.closest('.menu')) closeMenu();
+  });
+
+  /* выбор */
+  $$('.js-checkrow').forEach(r => r.addEventListener('click', () => { const c = r.querySelector('.check'); c.setAttribute('aria-checked', String(c.getAttribute('aria-checked') !== 'true')); }));
+  $('#radioList').addEventListener('click', e => { const b = e.target.closest('.cell'); if (b) $$('#radioList .cell').forEach(x => x.setAttribute('aria-checked', String(x === b))); });
+
+  /* слайдеры */
+  const bindSlider = (inp, out) => { const upd = () => { const p = (inp.value - inp.min) / (inp.max - inp.min) * 100; inp.style.setProperty('--p', p + '%'); out && (out.textContent = nf.format(inp.value) + ' ₸'); }; inp.addEventListener('input', upd); upd(); };
+  bindSlider($('#sl1'), $('#slVal')); bindSlider($('#sl2'));
+
+  /* барабан */
+  const MONTHS = ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'];
+  const YEARS = Array.from({ length: 9 }, (_, i) => 2022 + i);
+  const wheelState = {};
+  const buildCol = (col, items, start) => {
+    col.innerHTML = '<div class="wheel__pad"></div>' + items.map(v => `<div class="wheel__item">${v}</div>`).join('') + '<div class="wheel__pad"></div>';
+    const els = [...col.querySelectorAll('.wheel__item')];
+    const upd = () => {
+      const c = col.scrollTop + 90;
+      let best = 0;
+      els.forEach((el, i) => { const mid = el.offsetTop + 18; const d = (mid - c) / 36; el.style.transform = `rotateX(${Math.max(-70, Math.min(70, -d * 22))}deg)`; el.style.opacity = String(Math.max(.25, 1 - Math.abs(d) * .25)); if (Math.abs(d) < .5) best = i; });
+      els.forEach((el, i) => el.setAttribute('aria-selected', String(i === best)));
+      wheelState[col.dataset.col] = items[best];
+      $('#wheelVal').textContent = `${wheelState.m || ''} ${wheelState.y || ''}`;
+    };
+    col.addEventListener('scroll', () => requestAnimationFrame(upd), { passive: true });
+    col.scrollTop = start * 36; upd();
+  };
+  buildCol($('[data-col="m"]'), MONTHS, 10); buildCol($('[data-col="y"]'), YEARS, 4);
+
+  /* клавиатура */
+  let expr = '';
+  const keys = ['1', '2', '3', '⌫', '4', '5', '6', '+', '7', '8', '9', '−', '000', '0', 'C'];
+  $('#pad').innerHTML = keys.map(k => `<button class="key${'⌫+−'.includes(k) ? ' key--op' : ''}" data-k="${k}" aria-label="${k === '⌫' ? 'Стереть' : k}">${k === '⌫' ? ms('backspace') : k}</button>`).join('') + `<button class="key key--ok" style="grid-column:4;grid-row:4" data-k="ok" aria-label="Готово">${ms('check')}</button>`;
+  const evalExpr = s => s.split(/(?=[+−])/).reduce((a, t) => a + (t[0] === '−' ? -1 : 1) * (+t.replace(/[+−]/, '') || 0), 0);
+  $('#pad').addEventListener('click', e => {
+    const k = e.target.closest('.key')?.dataset.k; if (!k) return;
+    if (k === 'ok') { island(`Добавлено: ${nf.format(Math.max(0, evalExpr(expr)))} ₸`, 'check_circle', 'var(--green)'); expr = ''; }
+    else if (k === 'C') expr = ''; else if (k === '⌫') expr = expr.slice(0, -1);
+    else if ('+−'.includes(k)) { if (expr && !'+−'.includes(expr.at(-1))) expr += k; }
+    else if (expr.length < 12 && !((expr === '' || '+−'.includes(expr.at(-1))) && k.startsWith('0'))) expr += k;
+    const v = nf.format(Math.max(0, evalExpr(expr)));
+    $('#padExpr').textContent = /[+−]/.test(expr) ? expr.replace(/([+−])/g, ' $1 ') + ' =' : '';
+    $('#padOut').innerHTML = v + '<span style="color:var(--label-3);font-size:30px;margin-left:4px">₸</span>';
+  });
+
+  /* цвет и иконка */
+  const COLORS = ['red', 'orange', 'yellow', 'green', 'mint', 'teal', 'cyan', 'blue', 'indigo', 'purple', 'pink', 'brown', 'gray'];
+  const PICK_ICONS = ['shopping_cart', 'local_cafe', 'local_taxi', 'directions_bus', 'home', 'medication', 'movie', 'checkroom', 'pets', 'sports_esports', 'flight', 'fitness_center', 'music_note', 'school', 'local_gas_station', 'redeem'];
+  let pc = 'blue', pi = 'directions_bus';
+  const paintPick = () => {
+    $('#colorPick').innerHTML = COLORS.map(c => `<button class="color" style="--c:var(--${c})" aria-pressed="${c === pc}" aria-label="Цвет ${c}" data-c="${c}"></button>`).join('');
+    $('#iconPick').innerHTML = PICK_ICONS.map(i => `<button aria-pressed="${i === pi}" aria-label="${i}" data-i="${i}">${ms(i)}</button>`).join('');
+    $('#iconPick').style.setProperty('--c', `var(--${pc})`);
+    $('#pickPreview').style.setProperty('--c', `var(--${pc})`); $('#pickPreview').innerHTML = ms(pi);
+      };
+  $('#colorPick').addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { pc = b.dataset.c; paintPick(); } });
+  $('#iconPick').addEventListener('click', e => { const b = e.target.closest('[data-i]'); if (b) { pi = b.dataset.i; paintPick(); } });
+  paintPick();
+
+  /* ячейки операций со смахиванием */
+  const TX = [['local_taxi', 'yellow', 'Такси', 'Домой из офиса', '−2 100 ₸'], ['shopping_cart', 'orange', 'Продукты', 'На неделю', '−12 450 ₸'], ['work', 'green', 'Зарплата', 'Октябрь', '+620 000 ₸', 1]];
+  const paintTx = () => { $('#txDemo').innerHTML = TX.map(([i, c, t, s, a, inc]) => `<div class="cell-wrap" style="position:relative;overflow:hidden"><div style="position:absolute;inset:0;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:flex-end;padding-right:20px;opacity:0" class="swipe-bg">Удалить</div><button class="cell cell--tx" style="touch-action:pan-y"><span class="sq sq--md" style="--c:var(--${c})">${ms(i)}</span><span class="cell__main"><span class="cell__title">${t}</span><span class="cell__sub">${s}</span></span><span class="amt${inc ? ' amt--in' : ''}">${a}</span></button></div>`).join(''); };
+  paintTx();
+  $('#txDemo').addEventListener('pointerdown', e => {
+    const cell = e.target.closest('.cell'); if (!cell) return;
+    const wrap = cell.parentElement, bg = wrap.querySelector('.swipe-bg'), x0 = e.clientX; let dx = 0;
+    cell.style.transition = 'none';
+    const mv = ev => { dx = Math.min(0, ev.clientX - x0); cell.style.transform = `translateX(${dx}px)`; bg.style.opacity = dx < 0 ? 1 : 0; };
+    const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); cell.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1)'; if (dx < -110) { cell.style.transform = 'translateX(-110%)'; wrap.animate([{ height: wrap.offsetHeight + 'px' }, { height: '0px' }], { duration: 320, delay: 200, easing: 'cubic-bezier(.32,.72,0,1)', fill: 'forwards' }); island('Удалено', 'delete', 'var(--red)', 'Вернуть', () => paintTx()); } else { cell.style.transform = ''; setTimeout(() => (bg.style.opacity = 0), 300); } };
+    addEventListener('pointermove', mv); addEventListener('pointerup', up);
+  });
+  $('#disc .disclosure__head').addEventListener('click', () => $('#disc').classList.toggle('is-open'));
+
+  /* кольца и спиннеры */
+  const ring = (p, c, label, size = 56) => { const C = 2 * Math.PI * 42; return `<div class="ring" style="--size:${size}px;--c:var(--${c})"><svg viewBox="0 0 96 96"><circle class="ring__track" cx="48" cy="48" r="42" style="stroke-width:10"/><circle class="ring__val" cx="48" cy="48" r="42" stroke-dasharray="${C}" style="stroke-width:10;stroke-dashoffset:${C * (1 - p)};--len:${C}"/></svg><b>${label}</b></div>`; };
+  $('#rings').innerHTML = ring(.46, 'tint', '46%') + ring(.86, 'orange', '86%', 64) + ring(1, 'green', '✓', 72);
+  const spin = (s, c = '') => `<span class="spinner" style="--s:${s}px;${c}">${[...Array(8)].map((_, k) => `<i style="--k:${k}"></i>`).join('')}</span>`;
+  $('#spinners').innerHTML = spin(16) + spin(20) + spin(36) + `<button class="btn btn--filled btn--small" style="min-width:110px">${spin(18).replace('<span class="spinner"', '<span class="spinner" data-x').replace(/background:/g, '')}</button>`;
+  $('#spinners .btn .spinner i') && $$('#spinners .btn .spinner i').forEach(i => (i.style.background = '#fff'));
+
+  /* индикатор страниц */
+  const SLIDES = [['Учёт за 3 нажатия', 'Сумма, категория, готово'], ['Челленджи', 'Лимит на любую категорию'], ['Итоги месяца', 'Сторис о ваших тратах'], ['Награды', 'Монеты за привычки и экономию']];
+  let si = 0;
+  const paintDots = () => { $('#dots').innerHTML = SLIDES.map((_, i) => `<button aria-label="Слайд ${i + 1}" aria-current="${i === si}"></button>`).join(''); $('#dotsTitle').textContent = SLIDES[si][0]; $('#dotsSub').textContent = SLIDES[si][1]; $('#dotsTitle').animate([{ opacity: 0, transform: 'translateX(12px)' }, { opacity: 1, transform: 'none' }], { duration: 360, easing: 'cubic-bezier(.32,.72,0,1)' }); };
+  $('#dots').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; si = [...$('#dots').children].indexOf(b); paintDots(); });
+  paintDots();
+
+  /* баннеры */
+  $$('.js-dismiss').forEach(b => b.addEventListener('click', () => { const el = b.closest('.banner'); el.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.96)' }], { duration: 220, fill: 'forwards' }).onfinish = () => el.remove(); }));
+
+  /* награды */
+  const BADGES = [['bronze', 'edit_calendar', 'Летописец', 'Бронза', .4], ['silver', 'directions_walk', 'Пешеход', 'Серебро', .7], ['gold', 'savings', 'Копилка', 'Золото', 1], ['gold', 'local_taxi', 'Таксофоб', '×2', 1, 2], ['locked', 'diamond', 'Миллионер', '583к из 1м', .58], ['locked', 'lock', 'Секрет', 'откройте случайно', 0]];
+  const badge = ([tier, icon, , , prog, count], size = 72) => { const C = 289; return `<div class="badge badge--${tier}" style="--size:${size}px"><svg class="badge__ring" viewBox="0 0 100 100"><circle class="badge__track" cx="50" cy="50" r="46"/>${prog ? `<circle class="badge__val" cx="50" cy="50" r="46" stroke-dasharray="${C}" style="stroke-dashoffset:${C * (1 - prog)};--len:${C}"/>` : ''}</svg><div class="badge__core">${ms(icon)}</div>${count ? `<span class="badge__count">×${count}</span>` : ''}</div>`; };
+  $('#badgeDemo').innerHTML = BADGES.map((b, i) => `<button style="display:grid;justify-items:center;gap:6px;text-align:center;width:96px" data-b="${i}">${badge(b)}<b class="t-footnote" style="font-weight:600">${b[2]}</b><span class="t-caption secondary">${b[3]}</span></button>`).join('');
+  $('#badgeDemo').addEventListener('click', e => { const b = e.target.closest('[data-b]'); if (!b) return; const d = BADGES[+b.dataset.b]; if (d[0] === 'locked') return island('Награда ещё не получена', 'lock', 'var(--label-2)'); const o = overlay(); o.innerHTML = `<div class="dialog"><div class="alert" style="width:300px;padding:28px 16px 0;perspective:900px">${badge(d, 112).replace('class="badge', 'style="margin:0 auto;animation:badge-in 1.1s var(--ease-out) both" class="badge')}<div class="alert__body"><span class="t-footnote" style="color:var(--orange);font-weight:600;text-transform:uppercase">Новая награда</span><div class="alert__title" style="font-size:22px">${d[2]}</div></div><div class="alert__actions"><button class="alert__btn alert__btn--bold">Отлично</button></div></div></div>`; o.querySelector('.alert__btn').onclick = () => closeOverlay(o); });
+
+  /* календарь и график */
+  const vals = [0, 3, 12, 0, 8, 25, 14, 6, 0, 18, 41, 9, 3, 0, 22, 11, 7, 30, 4, 0, 15, 9, 2, 35, 6, 3, 0, 19, 12, 8];
+  const capV = 30;
+  $('#calDemo').innerHTML = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'].map(d => `<div class="cal__wd">${d}</div>`).join('') + vals.map((v, i) => `<button class="day${i === 19 ? ' day--today' : ''}${i === 12 ? ' day--sel' : ''}${i > 19 ? ' day--future' : ''}" style="--h:${Math.round(25 + Math.min(1, v / capV) * 75)}%"><span class="day__n">${i + 1}</span><span class="day__v">${v && i <= 19 ? v + 'к' : ''}</span></button>`).join('');
+  $('#calDemo').addEventListener('click', e => { const d = e.target.closest('.day'); if (d) $$('#calDemo .day').forEach(x => x.classList.toggle('day--sel', x === d)); });
+  $('#chartMini').innerHTML = vals.map((v, i) => `<i style="--h:${Math.max(.02, v / 41)};--i:${i}"></i>`).join('');
+
+  /* слои: оверлей, алерты, action sheet, шторка, остров */
+  const overlay = () => { const o = document.createElement('div'); o.className = 'overlay-root'; document.body.append(o); return o; };
+  const closeOverlay = (o, ms_ = 240) => { o.querySelectorAll('.dialog, .scrim, .sheet').forEach(x => x.classList.add('is-closing')); setTimeout(() => o.remove(), ms_); };
+  const alertBox = ({ title, msg, actions, field }) => {
+    const o = overlay();
+    o.innerHTML = `<div class="dialog"><div class="alert" role="alertdialog"><div class="alert__body"><div class="alert__title">${title}</div>${msg ? `<div class="alert__msg">${msg}</div>` : ''}${field ? `<label class="input"><input autocomplete="off" data-1p-ignore data-lpignore="true" id="alertField" placeholder="${field}"></label>` : ''}</div><div class="alert__actions${actions.length > 2 ? ' alert__actions--stack' : ''}">${actions.map(([l, st], i) => `<button class="alert__btn${st ? ' alert__btn--' + st : ''}" data-i="${i}">${l}</button>`).join('')}</div></div></div>`;
+    o.addEventListener('click', e => { const b = e.target.closest('.alert__btn'); if (!b) return; const a = actions[+b.dataset.i]; const val = o.querySelector('#alertField')?.value; closeOverlay(o); a[2] && setTimeout(() => a[2](val), 250); });
+    o.querySelector('#alertField')?.focus();
+  };
+  $('#openAlert').onclick = () => alertBox({ title: 'Стереть все данные?', msg: 'Записи, челленджи и награды удалятся с этого устройства. Отменить это нельзя.', actions: [['Отмена', 'bold'], ['Стереть', 'destructive', () => island('Все данные стёрты', 'delete', 'var(--red)')]] });
+  $('#openAlert3').onclick = () => alertBox({ title: 'Лимит превышен', msg: 'На такси ушло 21 400 из 20 000 ₸.', actions: [['Поднять лимит до 25 000 ₸', '', () => island('Лимит: 25 000 ₸', 'check_circle', 'var(--green)')], ['Оставить как есть'], ['Отмена', 'bold']] });
+  $('#openPrompt').onclick = () => alertBox({ title: 'Новая категория', msg: 'Короткое название, его видно в списке.', field: 'Например, Спортзал', actions: [['Отмена'], ['Создать', 'bold', v => island(v ? `Категория «${v}» добавлена` : 'Введите название', v ? 'check_circle' : 'error', v ? 'var(--green)' : 'var(--red)')]] });
+  $('#openActions').onclick = () => {
+    const o = overlay();
+    o.innerHTML = `<div class="dialog dialog--sheet"><div class="action-sheet"><div class="action-sheet__group"><div class="action-sheet__title"><b>Бэкап от 1 ноября</b>412 записей. При объединении из двух версий записи остаётся более свежая.</div><button class="action-sheet__btn" data-r="Бэкап объединён">Объединить с текущими</button><button class="action-sheet__btn action-sheet__btn--destructive" data-r="Данные заменены">Заменить всё</button></div><button class="action-sheet__cancel">Отмена</button></div></div>`;
+    o.addEventListener('click', e => { if (e.target.closest('.action-sheet__btn, .action-sheet__cancel') || e.target.classList.contains('dialog')) { const r = e.target.closest('[data-r]')?.dataset.r; closeOverlay(o, 360); r && setTimeout(() => island(r, 'check_circle', 'var(--green)'), 300); } });
+  };
+  $('#openSheet').onclick = () => {
+    const o = overlay();
+    o.innerHTML = `<div class="scrim"></div><div class="sheet sheet--auto" role="dialog"><div class="sheet__grab"></div><div class="sheet__nav"><button class="btn btn--plain js-x">Отмена</button><span class="sheet__title">Новый челлендж</span><button class="btn btn--plain is-bold js-x" data-ok>Начать</button></div><div class="sheet__body"><div class="section"><div class="section__header">Категория</div><div class="group"><div class="cell cell--icon"><span class="sq" style="--c:var(--yellow)">${ms('local_taxi')}</span><span class="cell__main">Такси</span><span class="ms cell__tick" style="transform:none">check</span></div><div class="cell cell--icon"><span class="sq" style="--c:var(--brown)">${ms('local_cafe')}</span><span class="cell__main">Кафе</span></div></div></div><div class="section"><div class="section__header">Лимит в месяц</div><label class="input input--money"><input autocomplete="off" data-1p-ignore data-lpignore="true" value="20 000" inputmode="numeric" id="sheetMoney"><span class="input__suffix">₸</span></label></div></div></div>`;
+    fmtInput(o.querySelector('#sheetMoney'));
+    const close = ok => { closeOverlay(o, 360); ok && setTimeout(() => island('Челлендж: такси до 20 000 ₸', 'check_circle', 'var(--green)'), 300); };
+    o.querySelector('.scrim').onclick = () => close();
+    o.querySelectorAll('.js-x').forEach(b => (b.onclick = () => close(b.hasAttribute('data-ok'))));
+    const sh = o.querySelector('.sheet'), grab = o.querySelector('.sheet__grab'); let y0 = null, dy = 0;
+    grab.addEventListener('pointerdown', e => { y0 = e.clientY; grab.setPointerCapture(e.pointerId); sh.style.animation = 'none'; });
+    grab.addEventListener('pointermove', e => { if (y0 == null) return; dy = Math.max(0, e.clientY - y0); sh.style.transform = `translateY(${dy}px)`; });
+    grab.addEventListener('pointerup', () => { y0 = null; sh.style.transition = 'transform 420ms cubic-bezier(.32,.72,0,1)'; if (dy > 100) { sh.style.transform = 'translateY(100%)'; close(); } else sh.style.transform = ''; dy = 0; });
+  };
+  let islandEl = null, islandT = 0;
+  function island(text, icon, color, action, onAction) {
+    islandEl?.remove(); clearTimeout(islandT);
+    const o = overlay(); o.style.pointerEvents = 'none'; islandEl = o;
+    o.innerHTML = `<div class="island" role="status" style="pointer-events:auto;left:50%"><span class="ms" style="color:${color}">${icon}</span><span>${text}</span>${action ? `<button>${action}</button>` : ''}</div>`;
+    const el = o.firstChild;
+    if (action) el.querySelector('button').onclick = () => { onAction && onAction(); el.classList.add('is-closing'); setTimeout(() => o.remove(), 300); };
+    islandT = setTimeout(() => { el.classList.add('is-closing'); setTimeout(() => o.remove(), 360); }, action ? 4000 : 2400);
+  }
+  $('#islandOk').onclick = () => island('Такси: −2 100 ₸', 'check_circle', 'var(--green)');
+  $('#islandUndo').onclick = () => island('Удалено: Кафе, 1 600 ₸', 'delete', 'var(--red)', 'Вернуть', () => island('Запись вернулась', 'undo', 'var(--tint)'));
+  $('#islandErr').onclick = () => island('Нет соединения. Попробуем позже.', 'error', 'var(--red)');
+
+  /* навигация */
+  $('#navFill').innerHTML = ['Тема', 'Анимации', 'Вибрация', 'Месяц начинается', 'Первый день недели', 'Категории', 'Челленджи', 'Скачать бэкап', 'Загрузить бэкап', 'Экспорт в CSV'].map(n => `<div class="cell"><span class="cell__main">${n}</span><span class="ms cell__chev">chevron_right</span></div>`).join('');
+  $('#navScroll').addEventListener('scroll', e => $('#navBar').classList.toggle('is-scrolled', e.target.scrollTop > 40), { passive: true });
+  $('#tabDemo').addEventListener('click', e => { const t = e.target.closest('.tab:not(.tab--add)'); if (!t) return; $$('#tabDemo .tab:not(.tab--add)').forEach(x => { const on = x === t; on ? x.setAttribute('aria-current', 'page') : x.removeAttribute('aria-current'); x.querySelector('.ms').classList.toggle('fill', on); }); });
+
+  /* проценты капают */
+  let di = 5512; setInterval(() => { di += .16; const t = $('#depInt'); if (t) t.textContent = `+${di.toFixed(2).replace('.', ',')} ₸ процентов`; }, 100);
+
+  /* рамка десктопа */
+  const scaleDesk = () => { const box = $('#deskScale'), k = Math.min(1, box.clientWidth / 1280); $('#desk').style.transform = `scale(${k})`; box.style.height = 800 * k + 'px'; };
+  new ResizeObserver(scaleDesk).observe($('#deskScale'));
+})();
+</script>
