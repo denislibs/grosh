@@ -101,6 +101,10 @@
 
 /* ---------- база ---------- */
 *, *::before, *::after { box-sizing: border-box; }
+/* без увеличения по двойному касанию, как в нативном приложении; прокрутка и увеличение двумя пальцами работают.
+   :where — нулевая специфичность, чтобы pan-y и none у жестов (свайп записи, шторка) не перебивались */
+:where(*) { touch-action: manipulation; }
+
 body {
   background: var(--bg); color: var(--label);
   font-family: var(--font); font-size: var(--t-body); line-height: 1.3; letter-spacing: -.41px;
