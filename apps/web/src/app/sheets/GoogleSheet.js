@@ -12,7 +12,7 @@ export function GoogleSheet({ onCredential, onRedirect, onClose }) {
   useEffect(() => {
     // Google сначала вставляет пустой фрейм и дорисовывает кнопку позже — ждём, пока у него появится высота,
     // а до тех пор место под кнопку фиксированное, чтобы шторка не прыгала
-    const ro = new ResizeObserver(() => { if (slot.current?.offsetHeight > 0) { setState('shown'); ro.disconnect(); } });
+    const ro = new ResizeObserver(() => { if (slot.current?.querySelector('iframe')?.offsetHeight > 0) { setState('shown'); ro.disconnect(); } });
     ro.observe(slot.current);
     renderGoogleButton(slot.current, { clientId: config.googleClientId, dark: resolved === 'dark', onCredential })
       .catch(() => { ro.disconnect(); setState('failed'); });
