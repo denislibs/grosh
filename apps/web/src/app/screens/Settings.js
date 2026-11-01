@@ -69,7 +69,7 @@ export function Settings({ s, onClose }) {
       <button class="cell cell--icon" onClick=${loadDemo}><${Sq} icon="auto_awesome" color="indigo" /><span class="cell__main">Заполнить примером</span><${Chevron} /></button>
     </div><div class="section__footer">Данные хранятся только на этом устройстве. Бэкап — это файл JSON, его можно загрузить обратно на любом устройстве.</div></div>
     <div class="section"><div class="group"><button class="cell cell--destructive" onClick=${reset}>Стереть все данные</button></div>
-      <div class="section__footer">Грош 0.1 · прототип · схема данных v${s.v}${s.meta.demo ? ' · заполнено примерами' : ''}</div></div>
+      <div class="section__footer">Грош 0.1 · схема данных v${s.v} · <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--tint)">Политика конфиденциальности</a>${s.meta.demo ? ' · заполнено примерами' : ''}</div></div>
     <input type="file" id="import-file" accept="application/json,.json" ref=${fileRef} onChange=${onFile} hidden />
   <//>`;
 }

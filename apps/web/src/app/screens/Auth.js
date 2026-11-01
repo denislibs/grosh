@@ -108,7 +108,7 @@ export function Auth({ start = 'welcome', onClose }) {
           <button class="check" role="checkbox" aria-checked=${String(f.migrate)} aria-label="Перенести данные"><${Icon} n="check" /></button>
         </div></div>
       </div>
-      <div class="auth__actions">${btn('register', 'Создать аккаунт')}${socials}<div class="auth__note">Создавая аккаунт, вы соглашаетесь с условиями использования и политикой конфиденциальности.</div></div>
+      <div class="auth__actions">${btn('register', 'Создать аккаунт')}${socials}<div class="auth__note">Создавая аккаунт, вы соглашаетесь с <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--tint)">политикой конфиденциальности</a>.</div></div>
       <div class="auth__foot">Уже есть аккаунт? <button class="link" onClick=${() => go('login')}>Войти</button></div>
     </div>`,
     forgot: html`<div class=${stepCls} key="forgot">

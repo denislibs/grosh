@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Политика конфиденциальности — Грош</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <style>
+    :root { --bg: #F2F2F7; --card: #FFFFFF; --label: #000; --label-2: rgba(60, 60, 67, .6); --sep: rgba(60, 60, 67, .29); --tint: #007AFF; color-scheme: light; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #000; --card: #1C1C1E; --label: #fff; --label-2: rgba(235, 235, 245, .6); --sep: rgba(84, 84, 88, .65); --tint: #0A84FF; color-scheme: dark; } }
+    body { margin: 0; background: var(--bg); color: var(--label); font: 17px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, system-ui, "Segoe UI", Roboto, sans-serif; letter-spacing: -.2px; }
+    main { max-width: 680px; margin: 0 auto; padding: 40px max(20px, env(safe-area-inset-left)) 60px max(20px, env(safe-area-inset-right)); }
+    h1 { font-size: 34px; letter-spacing: .3px; margin: 0 0 4px; }
+    h2 { font-size: 20px; margin: 32px 0 8px; }
+    p, li { color: var(--label); }
+    .muted { color: var(--label-2); font-size: 15px; }
+    section { background: var(--card); border-radius: 10px; padding: 4px 20px; margin-top: 12px; }
+    a { color: var(--tint); }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Политика конфиденциальности</h1>
+  <p class="muted">Приложение «Грош» · действует с 1 ноября 2026 года</p>
+
+  <section>
+    <h2>Коротко</h2>
+    <p>Грош — личное приложение для учёта трат. Ваши записи принадлежат вам: мы их не продаём, не показываем рекламу и не передаём третьим лицам.</p>
+  </section>
+
+  <section>
+    <h2>Какие данные мы храним</h2>
+    <ul>
+      <li><b>Без аккаунта</b> все данные хранятся только на вашем устройстве, в памяти браузера. На сервер ничего не отправляется.</li>
+      <li><b>С аккаунтом</b> мы храним адрес электронной почты, имя, а также то, что вы вводите в приложении: операции, категории, челленджи, рассрочки, депозиты, настройки и полученные награды. Это нужно, чтобы данные были доступны на всех ваших устройствах.</li>
+      <li><b>Вход через Google</b> передаёт нам только адрес почты и имя из вашего аккаунта Google. Доступа к письмам, контактам, файлам и другим данным Google у приложения нет.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Где и как хранятся данные</h2>
+    <p>Данные аккаунта хранятся в базе Supabase. Доступ настроен так, что каждый пользователь может прочитать и изменить только свои записи. Соединение с сервером шифруется (HTTPS). Пароли хранятся только в виде хеша — их не видит никто, включая разработчика.</p>
+  </section>
+
+  <section>
+    <h2>Кому передаются данные</h2>
+    <p>Никому. Данные обрабатывают только сервисы, без которых приложение не работает: Supabase (хранение данных и вход) и Google (если вы входите через Google). Шрифты приложения загружаются с Google Fonts.</p>
+  </section>
+
+  <section>
+    <h2>Ваши права</h2>
+    <ul>
+      <li>Скачать все свои данные в любой момент: Настройки → «Скачать бэкап» или «Экспорт в CSV».</li>
+      <li>Стереть данные на устройстве: Настройки → «Стереть все данные».</li>
+      <li>Удалить аккаунт и все данные на сервере: напишите на почту ниже, мы удалим их в течение 30 дней.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Контакты</h2>
+    <p>Вопросы о данных и удаление аккаунта: <a href="mailto:denismakste@gmail.com">denismakste@gmail.com</a></p>
+  </section>
+
+  <p class="muted" style="margin-top:24px"><a href="./">← Вернуться в приложение</a></p>
+</main>
+</body>
+</html>
